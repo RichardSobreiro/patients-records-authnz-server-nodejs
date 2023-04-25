@@ -5,7 +5,7 @@
   "description": "",
   "keywords": [],
   "license": "MIT",
-  "author": "ebrahimmfadae@gmail.com",
+  "author": "richardsobreiro@gmail.com",
   "type": "commonjs",
   "scripts": {
     "docker-compose:up": "docker-compose up -d",
