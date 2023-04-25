@@ -40,6 +40,8 @@ const start = async () => {
   provider.on("grant.error", handleClientAuthErrors);
   provider.on("introspection.error", handleClientAuthErrors);
   provider.on("revocation.error", handleClientAuthErrors);
+  provider.on("invalid_request", handleClientAuthErrors);
+  provider.on("jwks.error", handleClientAuthErrors);
 
   app.use(koaStatic(path.resolve("public")));
   app.use(router(provider).routes());

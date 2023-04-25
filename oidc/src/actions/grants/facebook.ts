@@ -9,11 +9,34 @@ import resolveResource from "oidc-provider/lib/helpers/resolve_resource";
 import { Middleware } from "koa";
 import * as accountService from "../../services/account-persist.service";
 
-export const gty = "password";
+type FacebookInstrospectionResponse = {
+  data: {
+    app_id: string;
+    is_valid: boolean;
+    user_id: string;
+  };
+};
 
-export const parameters = ["username", "password", "resource", "scope"];
+type FacebookAccessTokenResponse = {
+  access_token: string;
+  token_type: string;
+};
 
-export const passwordHandler: Middleware = async function (ctx, next) {
+export const gtyFacebook = "facebook";
+
+export const parametersFacebook = [
+  "client_id",
+  "access_token",
+  "app_id",
+  "user_id",
+  "username",
+  "email",
+  "pictureUrl",
+  "resource",
+  "scope",
+];
+
+export const facebookHandler: Middleware = async function (ctx, next) {
   const {
     issueRefreshToken,
     conformIdTokenClaims,
@@ -28,18 +51,58 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     expiresWithSession,
   } = instance(ctx.oidc.provider).configuration();
 
-  presence(ctx, "username", "password");
+  presence(
+    ctx,
+    "client_id",
+    "access_token",
+    "app_id",
+    "user_id",
+    "username",
+    "email",
+    "pictureUrl"
+  );
 
   const params = ctx.oidc.params;
 
-  const doc = await accountService.get(params.username);
-  if (doc.password !== params.password) {
-    throw new InvalidGrant("password grant invalid");
+  // const accessTokenUrl: string = `https://graph.facebook.com/oauth/access_token?grant_type=client_credentials&client_id=${process.env.FACEBOOK_CLIENT_ID}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}`;
+  // const responseAccessToken: Response = await fetch(accessTokenUrl);
+  // const resultAccessToken =
+  //   (await responseAccessToken.json()) as FacebookAccessTokenResponse;
+  // const url: string = `https://graph.facebook.com/v16.0/debug_token?input_token=${params.access_token}&access_token=${resultAccessToken.access_token}`;
+  // const response: Response = await fetch(url);
+  // const result = (await response.json()) as FacebookInstrospectionResponse;
+  // if (
+  //   !result.data.is_valid ||
+  //   result.data.app_id !== params.app_id ||
+  //   result.data.user_id !== params.user_id
+  // ) {
+  //   ctx.throw(400, "Invalid access token.");
+  // }
+
+  const doc = await accountService.get(params.email);
+  // if (doc.password !== params.password) {
+  //   throw new InvalidGrant("password grant invalid");
+  // }
+  if (!doc) {
+    await accountService.set(params.email, {
+      username: params.username,
+      email: params.email,
+      password: null,
+      signupComplete: false,
+      origin: {
+        type: "Facebook",
+        thirdPartyUserId: params.user_id,
+      },
+      picture: {
+        socialLoginUrl: params.pictureUrl,
+        cdn: null,
+      },
+    });
   }
 
   const account = await ctx.oidc.provider.Account.findAccount(
     ctx,
-    params.username
+    params.email
   );
 
   ctx.oidc.entity("Account", account);
@@ -111,7 +174,7 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     client: ctx.oidc.client,
     expiresWithSession: password.expiresWithSession,
     grantId: password.grantId,
-    gty,
+    gtyFacebook,
     sessionUid: password.sessionUid,
     sid: password.sid,
     resourceIndicators: resourceIndicators,
@@ -170,7 +233,7 @@ export const passwordHandler: Middleware = async function (ctx, next) {
       client: ctx.oidc.client,
       expiresWithSession: password.expiresWithSession,
       grantId: password.grantId,
-      gty,
+      gtyFacebook,
       nonce: password.nonce,
       resource: resource,
       rotations: 0,

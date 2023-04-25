@@ -47,9 +47,17 @@ export const configuration: Configuration = {
       client_id: "api",
       client_secret: "night-wolf",
       redirect_uris: [],
-      response_types: [],
+      response_types: ["id_token"],
       grant_types: ["client_credentials"],
       scope: "openid email profile phone address",
+    },
+    {
+      client_id: "social_facebook",
+      client_secret: "social_facebook",
+      redirect_uris: [],
+      response_types: [],
+      grant_types: ["password", "refresh_token", "facebook"],
+      scope: "openid email profile phone address offline_access",
     },
   ],
   claims: {
@@ -84,6 +92,9 @@ export const configuration: Configuration = {
         );
       },
     },
+    jwtIntrospection: { enabled: true },
+    // jwtResponseModes: { enabled: true },
+    // jwtUserinfo: { enabled: true },
     revocation: { enabled: true },
     devInteractions: { enabled: false },
     resourceIndicators: {
@@ -99,6 +110,8 @@ export const configuration: Configuration = {
       getResourceServerInfo() {
         return {
           scope: "api:read offline_access",
+          accessTokenTTL: 2 * 60 * 60, // 2 hours
+          accessTokenFormat: "jwt",
         };
       },
     },
