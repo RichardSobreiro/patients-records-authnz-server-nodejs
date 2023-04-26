@@ -57,7 +57,7 @@ export const configuration: Configuration = {
       redirect_uris: [],
       response_types: [],
       grant_types: ["password", "refresh_token", "facebook"],
-      scope: "openid email profile phone address offline_access",
+      scope: "openid email profile phone address",
     },
   ],
   claims: {

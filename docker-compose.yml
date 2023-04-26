@@ -1,53 +1,71 @@
+# @format
 services:
   oidc:
     image: node:16-alpine
-    command: yarn start:oidc
+    command: yarn startjs:oidc
     working_dir: /app
     environment:
       - PORT=80
-      - OIDC_ISSUER=$OIDC_ISSUER
-      - MONGODB_URI=$MONGODB_URI
+      - FACEBOOK_CLIENT_ID=592502122839259
+      - FACEBOOK_CLIENT_SECRET=d59fa3a4fe5100112930c4a974054359
+      - OIDC_ISSUER=http://localhost:3000
+      - MONGODB_URI=mongodb+srv://richardsobreiro:XMP0ihb1EiKf5Zxm@patients-records-dev.zfwetxa.mongodb.net/?retryWrites=true&w=majority
     ports:
       - "3000:80"
     volumes:
       - .:/app
-  api:
-    image: node:16-alpine
-    command: yarn start:api
-    working_dir: /app
-    environment:
-      - PORT=80
-      - OIDC_ISSUER=$OIDC_ISSUER
-      - CLIENT_ID=api
-      - CLIENT_SECRET=night-wolf
-    ports:
-      - "3006:80"
-    volumes:
-      - .:/app
-  app:
-    image: node:16-alpine
-    command: yarn start:app
-    working_dir: /app
-    environment:
-      - PORT=80
-      - PUBLIC_OIDC_ISSUER=http://localhost:3000
-      - PUBLIC_APP_URL=http://localhost:3005
-      - PUBLIC_API_URL=http://localhost:3006
-      - CLIENT_ID=app
-      - CLIENT_SECRET=scorpion
-    ports:
-      - "3005:80"
-    volumes:
-      - .:/app
-  mongo:
-    image: mongo:4.4.7
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-    healthcheck:
-      test: test $$(mongo --quiet --eval "db.serverStatus().ok") -eq 1
-      interval: 10s
-      start_period: 30s
 volumes:
   mongo-data: {}
+# services:
+#   oidc:
+#     image: node:16-alpine
+#     command: yarn start:oidc
+#     working_dir: /app
+#     environment:
+#       - PORT=80
+#       - OIDC_ISSUER=$OIDC_ISSUER
+#       - MONGODB_URI=$MONGODB_URI
+#     ports:
+#       - "3000:80"
+#     volumes:
+#       - .:/app
+#   api:
+#     image: node:16-alpine
+#     command: yarn start:api
+#     working_dir: /app
+#     environment:
+#       - PORT=80
+#       - OIDC_ISSUER=$OIDC_ISSUER
+#       - CLIENT_ID=api
+#       - CLIENT_SECRET=night-wolf
+#     ports:
+#       - "3006:80"
+#     volumes:
+#       - .:/app
+#   app:
+#     image: node:16-alpine
+#     command: yarn start:app
+#     working_dir: /app
+#     environment:
+#       - PORT=80
+#       - PUBLIC_OIDC_ISSUER=http://localhost:3000
+#       - PUBLIC_APP_URL=http://localhost:3005
+#       - PUBLIC_API_URL=http://localhost:3006
+#       - CLIENT_ID=app
+#       - CLIENT_SECRET=scorpion
+#     ports:
+#       - "3005:80"
+#     volumes:
+#       - .:/app
+#   mongo:
+#     image: mongo:4.4.7
+#     ports:
+#       - "27017:27017"
+#     volumes:
+#       - mongo-data:/data/db
+#     healthcheck:
+#       test: test $$(mongo --quiet --eval "db.serverStatus().ok") -eq 1
+#       interval: 10s
+#       start_period: 30s
+# volumes:
+#   mongo-data: {}

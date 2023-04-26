@@ -13,6 +13,7 @@
     "start:api": "ts-node api/src",
     "start:app": "ts-node app/src",
     "start:oidc": "ts-node oidc/src",
+    "startjs:oidc": "nodemon dist/oidc/src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -39,6 +40,7 @@
     "@types/koa-static": "^4.0.2",
     "@types/node": "^16.4.14",
     "@types/node-fetch": "^2.5.12",
-    "@types/oidc-provider": "^7.6.0"
+    "@types/oidc-provider": "^7.6.0",
+    "nodemon": "^2.0.22"
   }
 }
