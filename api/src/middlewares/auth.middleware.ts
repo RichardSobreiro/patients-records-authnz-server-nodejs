@@ -1,3 +1,5 @@
+/** @format */
+
 import { Middleware } from "koa";
 import fetch from "node-fetch";
 
@@ -22,7 +24,8 @@ export const authenticate: Middleware = async (ctx, next) => {
   const json = await response.json();
   const { active, aud } = json;
   // Resource URI and audience (aud) must be equal
-  if (active && aud.trim() === ctx.request.href.split("?")[0]) {
+  //if (active && aud.trim() === ctx.request.href.split("?")[0]) {
+  if (active) {
     ctx.state.session = json;
     await next();
   } else {
@@ -32,13 +35,13 @@ export const authenticate: Middleware = async (ctx, next) => {
 
 export const authorize =
   (...scopes: string[]): Middleware =>
-    async (ctx, next) => {
-      if (
-        ctx.state.session &&
-        scopes.every((scope) => ctx.state.session.scope.includes(scope))
-      ) {
-        await next();
-      } else {
-        ctx.throw(401);
-      }
-    };
+  async (ctx, next) => {
+    if (
+      ctx.state.session &&
+      scopes.every((scope) => ctx.state.session.scope.includes(scope))
+    ) {
+      await next();
+    } else {
+      ctx.throw(401);
+    }
+  };

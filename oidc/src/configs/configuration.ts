@@ -139,7 +139,7 @@ export const configuration: Configuration = {
       if (token.resourceServer) {
         return token.resourceServer.accessTokenTTL || 60 * 60; // 1 hour in seconds
       }
-      return 60 * 60; // 1 hour in seconds
+      return 60 * 60 * 24; // 24 hours in seconds
     },
     AuthorizationCode: 600 /* 10 minutes in seconds */,
     BackchannelAuthenticationRequest:
@@ -157,7 +157,7 @@ export const configuration: Configuration = {
     },
     DeviceCode: 600 /* 10 minutes in seconds */,
     Grant: 1209600 /* 14 days in seconds */,
-    IdToken: 3600 /* 1 hour in seconds */,
+    IdToken: 3600 * 24 /* 1 hour in seconds */,
     Interaction: 3600 /* 1 hour in seconds */,
     RefreshToken: function RefreshTokenTTL(ctx, token, client) {
       if (

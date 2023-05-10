@@ -1,3 +1,5 @@
+/** @format */
+
 import { Middleware } from "koa";
 import { Provider } from "oidc-provider";
 import * as accountService from "../services/account-persist.service";
@@ -13,16 +15,20 @@ function debug(obj: any) {
 
 export default (oidc: Provider): { [key: string]: Middleware } => ({
   login: async (ctx) => {
+    const requestBody = ctx.request.body as {
+      username: string;
+      password?: string;
+    };
     const {
       prompt: { name },
     } = await oidc.interactionDetails(ctx.req, ctx.res);
     if (name === "login") {
-      const account = await accountService.get(ctx.request.body.username);
+      const account = await accountService.get(requestBody.username);
       let result: any;
-      if (account?.password === ctx.request.body.password) {
+      if (account?.password === requestBody.password) {
         result = {
           login: {
-            accountId: ctx.request.body.username,
+            accountId: requestBody.username,
           },
         };
       } else {
@@ -37,7 +43,10 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
     }
   },
   register: async (ctx) => {
-    const body = ctx.request.body;
+    const body = ctx.request.body as {
+      username: string;
+      password?: string;
+    };
     await accountService.set(body.username, {
       username: body.username,
       password: body.password,
@@ -56,9 +65,9 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
       const grant = interactionDetails.grantId
         ? await oidc.Grant.find(interactionDetails.grantId)
         : new oidc.Grant({
-          accountId,
-          clientId: params.client_id as string,
-        });
+            accountId,
+            clientId: params.client_id as string,
+          });
 
       if (grant) {
         if (details.missingOIDCScope) {
