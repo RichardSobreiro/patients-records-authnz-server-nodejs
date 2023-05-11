@@ -2,7 +2,7 @@
 
 import Router from "koa-router";
 import multer from "@koa/multer";
-import apiController from "../controllers/api.controller";
+import apiController from "../controllers/patients.controller";
 import proceedingsController from "../controllers/proceedings.controller";
 import { authenticate, authorize } from "../middlewares/auth.middleware";
 
@@ -13,8 +13,12 @@ export default () => {
 
   const { pi, createPatient, getPatients, getPatientById } = apiController();
 
-  const { createProceeding, getProceedingById, getProceedings } =
-    proceedingsController();
+  const {
+    createProceeding,
+    getProceedingById,
+    getProceedings,
+    getProceedingsTypesByEmail,
+  } = proceedingsController();
 
   router.get("/pi", authenticate, authorize("api:read"), pi);
 
@@ -65,6 +69,12 @@ export default () => {
   //   authenticate,
   //   updateProceeding
   // );
+
+  router.get(
+    "/professionals/:email/proceedings/types",
+    authenticate,
+    getProceedingsTypesByEmail
+  );
 
   return router;
 };

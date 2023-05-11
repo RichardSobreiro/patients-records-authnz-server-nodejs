@@ -36,8 +36,14 @@ export const CreatePatient = async (
   );
 };
 
-export const GetPatients = async (): Promise<GetPatientsResponse> => {
-  const results = await Patients.find();
+export const GetPatients = async (
+  patientName?: string
+): Promise<GetPatientsResponse> => {
+  const results = patientName
+    ? await Patients.find({
+        patientName: { $regex: patientName, $options: "i" },
+      })
+    : await Patients.find();
   let patients: GetPatient[] = [];
 
   results.forEach((entity) => {

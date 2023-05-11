@@ -26,7 +26,8 @@ export default (): { [key: string]: Middleware } => ({
   },
   getPatients: async (ctx) => {
     try {
-      const responseBody = await GetPatients();
+      const patientName = ctx.query.patientName as string;
+      const responseBody = await GetPatients(patientName);
       ctx.status = 200;
       ctx.message = "OK";
       ctx.response.body = JSON.stringify(responseBody);
@@ -37,17 +38,6 @@ export default (): { [key: string]: Middleware } => ({
   getPatientById: async (ctx) => {
     try {
       const responseBody = await GetPatientById(ctx.params.patientId);
-      ctx.status = 200;
-      ctx.message = "OK";
-      ctx.response.body = JSON.stringify(responseBody);
-    } catch (e: any) {
-      console.log(e);
-    }
-  },
-  createProceeding: async (ctx) => {
-    try {
-      const requestBody = ctx.request.body as CreatePatientRequest;
-      const responseBody = await CreatePatient(requestBody);
       ctx.status = 200;
       ctx.message = "OK";
       ctx.response.body = JSON.stringify(responseBody);

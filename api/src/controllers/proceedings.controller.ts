@@ -2,7 +2,11 @@
 import { Middleware, Request } from "koa";
 import { CreateProceedingRequest } from "../models/patients/proceedings/CreateProceedingRequest";
 import { createProceeding } from "../services/create.proceedings";
-import { getProceedingById, getProceedings } from "../services/get.proceedings";
+import {
+  getProceedingById,
+  getProceedings,
+  getProceedingsTypesByEmail,
+} from "../services/get.proceedings";
 
 interface MulterRequest extends Request {
   files: any;
@@ -55,6 +59,22 @@ export default (): { [key: string]: Middleware } => ({
       const limit = ctx.query.limit as string;
 
       const responseBody = await getProceedings(patientId, pageNumber, limit);
+
+      ctx.status = 200;
+      ctx.message = "Ok";
+      ctx.response.body = JSON.stringify(responseBody);
+    } catch (e: any) {
+      console.log(e);
+      ctx.status = 400;
+      ctx.message = "Bad Request";
+      ctx.response.body = { message: e.message, stackTrace: e.stack };
+    }
+  },
+  getProceedingsTypesByEmail: async (ctx) => {
+    try {
+      const email = ctx.params.email;
+
+      const responseBody = await getProceedingsTypesByEmail(email);
 
       ctx.status = 200;
       ctx.message = "Ok";

@@ -10,6 +10,10 @@ import {
 } from "../models/patients/proceedings/GetProceedingResponse";
 
 import { createBlobSas } from "./azure/azure.storage.account";
+import {
+  GetProceedingTypeResponse,
+  GetProceedingTypesResponse,
+} from "../models/patients/proceedings/GetProceedingTypesResponse";
 
 export const getProceedingById = async (
   patientId: string,
@@ -166,4 +170,28 @@ const createPhotoResponse = async (
     photosResponse.push(photoResponse);
   }
   return photosResponse;
+};
+
+export const getProceedingsTypesByEmail = async (
+  email: string
+): Promise<GetProceedingTypesResponse> => {
+  const proceedingTypeDocuments = await ProceedingTypes.find({
+    username: email,
+  });
+
+  const response: GetProceedingTypesResponse = new GetProceedingTypesResponse(
+    email
+  );
+
+  response.proceedingsTypes = [];
+  for (const proceedingTypeDocument of proceedingTypeDocuments) {
+    const proceedingType = new GetProceedingTypeResponse(
+      proceedingTypeDocument.proceedingTypeId,
+      proceedingTypeDocument.proceedingTypeDescription,
+      proceedingTypeDocument.notes
+    );
+    response.proceedingsTypes?.push(proceedingType);
+  }
+
+  return response;
 };
