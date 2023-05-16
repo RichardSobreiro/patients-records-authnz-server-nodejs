@@ -3,7 +3,7 @@
 import mongoose, { Schema } from "mongoose";
 
 interface Patient {
-  username: string;
+  userId: string;
   patientId: string;
   patientName: string;
   phoneNumber: string;
@@ -13,7 +13,7 @@ interface Patient {
 }
 
 const PatientsSchema = new Schema({
-  username: {
+  userId: {
     type: String,
     required: true,
     index: true,

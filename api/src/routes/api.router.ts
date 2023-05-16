@@ -2,7 +2,7 @@
 
 import Router from "koa-router";
 import multer from "@koa/multer";
-import apiController from "../controllers/patients.controller";
+import patientsController from "../controllers/patients.controller";
 import proceedingsController from "../controllers/proceedings.controller";
 import { authenticate, authorize } from "../middlewares/auth.middleware";
 
@@ -11,18 +11,22 @@ const upload = multer();
 export default () => {
   const router = new Router();
 
-  const { pi, createPatient, getPatients, getPatientById } = apiController();
+  const { pi, createPatient, getPatients, getPatientById, updatePatient } =
+    patientsController();
 
   const {
     createProceeding,
     getProceedingById,
     getProceedings,
     getProceedingsTypesByEmail,
+    updateProceeding,
   } = proceedingsController();
 
   router.get("/pi", authenticate, authorize("api:read"), pi);
 
   router.post("/patients", authenticate, createPatient);
+
+  router.put("/patients/:patientId", authenticate, updatePatient);
 
   router.get("/patients", authenticate, getPatients);
 
@@ -32,9 +36,6 @@ export default () => {
     "/patients/:patientId/proceedings",
     authenticate,
     upload.fields([
-      {
-        username: "username",
-      },
       {
         name: "date",
       },
@@ -56,6 +57,31 @@ export default () => {
     createProceeding
   );
 
+  router.put(
+    "/patients/:patientId/proceedings/:proceedingId",
+    authenticate,
+    upload.fields([
+      {
+        name: "date",
+      },
+      {
+        name: "proceedingTypeDescription",
+      },
+      {
+        name: "notes",
+      },
+      {
+        name: "beforePhotos",
+        maxCount: 5,
+      },
+      {
+        name: "afterPhotos",
+        maxCount: 5,
+      },
+    ]),
+    updateProceeding
+  );
+
   router.get(
     "/patients/:patientId/proceedings/:proceedingId",
     authenticate,
@@ -63,12 +89,6 @@ export default () => {
   );
 
   router.get("/patients/:patientId/proceedings", authenticate, getProceedings);
-
-  // router.put(
-  //   "/patients/:patientId/proceedings/:proceedingId",
-  //   authenticate,
-  //   updateProceeding
-  // );
 
   router.get(
     "/professionals/:email/proceedings/types",

@@ -45,7 +45,7 @@ export const getProceedingById = async (
   });
   response.beforePhotos = await createPhotoResponse(
     beforePhotos,
-    patient?.username!,
+    patient?.userId!,
     thresholdDateTime,
     proceedingId
   );
@@ -54,7 +54,7 @@ export const getProceedingById = async (
   });
   response.afterPhotos = await createPhotoResponse(
     afterPhotos,
-    patient?.username!,
+    patient?.userId!,
     thresholdDateTime,
     proceedingId
   );
@@ -95,7 +95,9 @@ export const getProceedings = async (
       limit: limit,
     };
   }
-  const proceedingDocuments = await Proceedings.find()
+  const proceedingDocuments = await Proceedings.find({
+    patientId: patientId,
+  })
     .sort("-_id")
     .skip(startIndex)
     .limit(limit)
@@ -124,7 +126,7 @@ export const getProceedings = async (
     });
     proceeding.beforePhotos = await createPhotoResponse(
       beforePhotos,
-      patient?.username!,
+      patient?.userId!,
       thresholdDateTime,
       proceedingDocument.proceedingId
     );
@@ -133,7 +135,7 @@ export const getProceedings = async (
     });
     proceeding.afterPhotos = await createPhotoResponse(
       afterPhotos,
-      patient?.username!,
+      patient?.userId!,
       thresholdDateTime,
       proceedingDocument.proceedingId
     );
@@ -145,14 +147,14 @@ export const getProceedings = async (
 
 const createPhotoResponse = async (
   photoDocuments: any[],
-  username: string,
+  userId: string,
   thresholdDateTime: Date,
   proceedingId: string
 ): Promise<GetProceedingPhotosResponse[]> => {
   const photosResponse: GetProceedingPhotosResponse[] = [];
   for (const photoDocument of photoDocuments) {
     if (photoDocument.sasTokenExpiresOn < thresholdDateTime) {
-      const sasToken = await createBlobSas(username, photoDocument.filename);
+      const sasToken = await createBlobSas(userId, photoDocument.filename);
       photoDocument.sasToken = sasToken.sasToken;
       photoDocument.sasTokenExpiresOn = sasToken.expiresOn!;
       photoDocument.save();
@@ -176,7 +178,7 @@ export const getProceedingsTypesByEmail = async (
   email: string
 ): Promise<GetProceedingTypesResponse> => {
   const proceedingTypeDocuments = await ProceedingTypes.find({
-    username: email,
+    userId: email,
   });
 
   const response: GetProceedingTypesResponse = new GetProceedingTypesResponse(

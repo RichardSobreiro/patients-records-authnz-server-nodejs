@@ -3,11 +3,11 @@ import { ProceedingTypes, ProceedingType } from "../db/models/ProceedingTypes";
 import { Proceedings } from "../db/models/Proceedings";
 import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
 import { Patients } from "../db/models/Patients";
-import { CreateProceedingRequest } from "../models/patients/proceedings/CreateProceedingRequest";
+import { UpdateProceedingRequest } from "../models/patients/proceedings/UpdateProceedingRequest";
 import {
-  CreateProceedingPhotosResponse,
-  CreateProceedingResponse,
-} from "../models/patients/proceedings/CreateProceedingResponse";
+  UpdateProceedingPhotosResponse,
+  UpdateProceedingResponse,
+} from "../models/patients/proceedings/UpdateProceedingResponse";
 import {
   createBlobClient,
   createContainerClient,
@@ -18,12 +18,13 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { ContainerClient } from "@azure/storage-blob";
 
-export const createProceeding = async (
+export const updateProceeding = async (
   userId: string,
   patientId: string,
-  request: CreateProceedingRequest,
+  proceedingId: string,
+  request: UpdateProceedingRequest,
   files: any
-): Promise<CreateProceedingResponse> => {
+): Promise<UpdateProceedingResponse> => {
   const patient = await Patients.findOne({ patientId: patientId });
 
   const proceedingType = await createProceedingTypeIfNotExists(
@@ -31,41 +32,57 @@ export const createProceeding = async (
     request.proceedingTypeDescription
   );
 
-  const proceeding = await Proceedings.create({
-    userId: userId,
-    proceedingId: uuidv4(),
-    creationDate: new Date(),
-    patientId: patientId,
-    date: new Date(request.date),
-    proceedingTypeId: proceedingType.proceedingTypeId,
-    notes: request.notes,
-  });
+  const proceeding = await Proceedings.findOneAndUpdate(
+    { userId: userId, proceedingId: proceedingId },
+    {
+      userId: userId,
+      proceedingId: proceedingId,
+      creationDate: new Date(),
+      patientId: patientId,
+      date: new Date(request.date),
+      proceedingTypeId: proceedingType.proceedingTypeId,
+      notes: request.notes,
+    }
+  );
 
-  const response = new CreateProceedingResponse(
-    proceeding.proceedingId,
-    proceeding.date,
+  const response = new UpdateProceedingResponse(
+    proceedingId,
+    request!.date,
     proceedingType.proceedingTypeDescription,
-    proceeding.notes
+    request!.notes
   );
 
   const containerClient = await createContainerClient(patient?.userId!);
 
   const beforePhotos = files["beforePhotos"];
+  const afterPhotos = files["afterPhotos"];
+
+  const deletedProceedingsPhotos = await ProceedingPhotos.find({
+    proceedingId: proceedingId,
+  });
+
+  for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
+    await containerClient.deleteBlob(deletedProceedingPhoto.filename);
+  }
+
+  await ProceedingPhotos.deleteMany({
+    proceedingId: proceedingId,
+  });
+
   if (beforePhotos && beforePhotos.length > 0) {
     response.beforePhotos = await processBeforePhotos(
       beforePhotos,
       containerClient,
-      proceeding.proceedingId,
+      proceedingId,
       patient?.userId!
     );
   }
 
-  const afterPhotos = files["afterPhotos"];
   if (afterPhotos && afterPhotos.length > 0) {
     response.afterPhotos = await processAfterPhotos(
       afterPhotos,
       containerClient,
-      proceeding.proceedingId,
+      proceedingId,
       patient?.userId!
     );
   }
@@ -78,9 +95,9 @@ const processBeforePhotos = async (
   containerClient: ContainerClient,
   proceedingId: string,
   username: string
-): Promise<CreateProceedingPhotosResponse[] | null> => {
+): Promise<UpdateProceedingPhotosResponse[] | null> => {
   if (beforePhotos && beforePhotos.length > 0) {
-    const beforePhotosResponse: CreateProceedingPhotosResponse[] =
+    const beforePhotosResponse: UpdateProceedingPhotosResponse[] =
       await processPhotos(
         beforePhotos,
         "beforePhotos",
@@ -99,9 +116,9 @@ const processAfterPhotos = async (
   containerClient: ContainerClient,
   proceedingId: string,
   username: string
-): Promise<CreateProceedingPhotosResponse[] | null> => {
+): Promise<UpdateProceedingPhotosResponse[] | null> => {
   if (afterPhotos && afterPhotos.length > 0) {
-    const afterPhotosResponse: CreateProceedingPhotosResponse[] =
+    const afterPhotosResponse: UpdateProceedingPhotosResponse[] =
       await processPhotos(
         afterPhotos,
         "afterPhotos",
@@ -121,8 +138,8 @@ const processPhotos = async (
   containerClient: ContainerClient,
   proceedingId: string,
   username: string
-): Promise<CreateProceedingPhotosResponse[]> => {
-  const photosResponse: CreateProceedingPhotosResponse[] = [];
+): Promise<UpdateProceedingPhotosResponse[]> => {
+  const photosResponse: UpdateProceedingPhotosResponse[] = [];
 
   for (const photoToBeCreated of photosToBeCreated) {
     const imageType = photoToBeCreated.mimetype.slice(
@@ -159,7 +176,7 @@ const processPhotos = async (
       sasTokenExpiresOn: sasToken.expiresOn,
     });
 
-    const photoResponse = new CreateProceedingPhotosResponse(
+    const photoResponse = new UpdateProceedingPhotosResponse(
       proceedingId,
       proceedingPhotoCreated.proceedingPhotoId,
       proceedingPhotoCreated.proceedingPhotoType,

@@ -3,7 +3,7 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface ProceedingType {
-  username: string;
+  userId: string;
   creationDate: Date;
   proceedingTypeId: string;
   proceedingTypeDescription: string;
@@ -11,7 +11,7 @@ export interface ProceedingType {
 }
 
 const ProceedingTypesSchema = new Schema({
-  username: {
+  userId: {
     type: String,
     required: true,
     index: true,

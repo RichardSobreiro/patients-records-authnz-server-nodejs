@@ -1,6 +1,6 @@
 /** @format */
 
-export class CreateProceedingRequest {
+export class UpdateProceedingRequest {
   constructor(
     public date: Date,
     public proceedingTypeDescription: string,

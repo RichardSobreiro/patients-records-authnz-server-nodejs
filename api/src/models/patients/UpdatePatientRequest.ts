@@ -1,8 +1,9 @@
 /** @format */
 
-export class CreatePatientRequest {
+export class UpdatePatientRequest {
   constructor(
     public userId: string,
+    public patientId: string,
     public patientName: string,
     public phoneNumber: string,
     public birthDate: Date,

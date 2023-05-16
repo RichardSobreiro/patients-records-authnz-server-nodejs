@@ -3,6 +3,7 @@
 import mongoose, { Schema } from "mongoose";
 
 interface Proceeding {
+  userId: string;
   proceedingId: string;
   creationDate: Date;
   patientId: string;
@@ -12,6 +13,11 @@ interface Proceeding {
 }
 
 const ProceedingsSchema = new Schema({
+  userId: {
+    type: String,
+    required: true,
+    index: true,
+  },
   proceedingId: {
     type: String,
     required: true,

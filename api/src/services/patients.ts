@@ -9,6 +9,9 @@ import {
 } from "../models/patients/GetPatientsResponse";
 
 import { v4 as uuidv4 } from "uuid";
+import { Proceedings } from "../db/models/Proceedings";
+import { UpdatePatientRequest } from "../models/patients/UpdatePatientRequest";
+import { UpdatePatientResponse } from "../models/patients/UpdatePatientResponse";
 
 export const CreatePatient = async (
   request: CreatePatientRequest
@@ -16,7 +19,7 @@ export const CreatePatient = async (
   let patientId = uuidv4();
 
   const result = await Patients.insertMany({
-    username: request.username,
+    userId: request.userId,
     patientId: patientId,
     patientName: request.patientName,
     phoneNumber: request.phoneNumber,
@@ -26,7 +29,7 @@ export const CreatePatient = async (
   });
 
   return new CreatePatientResponse(
-    result[0].username,
+    result[0].userId,
     result[0].patientId,
     result[0].patientName,
     result[0].phoneNumber,
@@ -36,19 +39,83 @@ export const CreatePatient = async (
   );
 };
 
+export const UpdatePatient = async (
+  request: UpdatePatientRequest
+): Promise<UpdatePatientResponse> => {
+  const result = await Patients.findOneAndUpdate(
+    { userId: request.userId, patientId: request.patientId },
+    {
+      patientName: request.patientName,
+      phoneNumber: request.phoneNumber,
+      birthDate: request.birthDate,
+      email: request.email,
+    }
+  );
+
+  return new UpdatePatientResponse(
+    result!.userId,
+    result!.patientId,
+    result!.patientName,
+    result!.phoneNumber,
+    result!.birthDate,
+    result!.creationDate,
+    result!.email
+  );
+};
+
 export const GetPatients = async (
-  patientName?: string
+  userId: string,
+  patientName?: string,
+  startDate?: Date,
+  endDate?: Date,
+  proceedingTypeId?: string
 ): Promise<GetPatientsResponse> => {
-  const results = patientName
-    ? await Patients.find({
-        patientName: { $regex: patientName, $options: "i" },
-      })
-    : await Patients.find();
+  let patientDocuments: any[] = [];
+  if (startDate || endDate || proceedingTypeId) {
+    type Filter = {
+      userId: any;
+      date?: any;
+      proceedingTypeId?: any;
+    };
+    let filterProceedings: Filter = {
+      userId: { userId: userId },
+    };
+    if (startDate && endDate) {
+      filterProceedings.date = { $gte: startDate, $lte: endDate };
+    }
+    if (proceedingTypeId) {
+      filterProceedings.proceedingTypeId = {
+        proceedingTypeId: proceedingTypeId,
+      };
+    }
+    const proceedingDocuments = await Proceedings.find(filterProceedings);
+    const patientsIds = proceedingDocuments.map((p) => p.patientId);
+    patientDocuments = patientDocuments = patientName
+      ? await Patients.find({
+          userId: userId,
+          patientId: { $in: patientsIds },
+          patientName: { $regex: patientName, $options: "i" },
+        })
+      : await Patients.find({
+          userId: userId,
+          patientId: { $in: patientsIds },
+        });
+  } else {
+    patientDocuments = patientName
+      ? await Patients.find({
+          userId: userId,
+          patientName: { $regex: patientName, $options: "i" },
+        })
+      : await Patients.find({
+          userId: userId,
+        });
+  }
+
   let patients: GetPatient[] = [];
 
-  results.forEach((entity) => {
+  patientDocuments.forEach((entity) => {
     const patient: GetPatient = new GetPatient(
-      entity.username,
+      entity.userId,
       entity.patientId,
       entity.patientName,
       entity.phoneNumber,
@@ -63,12 +130,16 @@ export const GetPatients = async (
 };
 
 export const GetPatientById = async (
+  userId: string,
   patientId: string
 ): Promise<GetPatient> => {
-  const results = await Patients.findOne({ patientId: patientId });
+  const results = await Patients.findOne({
+    userId: userId,
+    patientId: patientId,
+  });
 
   const patient: GetPatient = new GetPatient(
-    results!.username,
+    results!.userId,
     results!.patientId,
     results!.patientName,
     results!.phoneNumber,
