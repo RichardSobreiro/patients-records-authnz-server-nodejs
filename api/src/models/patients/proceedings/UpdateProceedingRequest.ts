@@ -6,6 +6,8 @@ export class UpdateProceedingRequest {
     public proceedingTypeDescription: string,
     public notes: string,
     public beforePhotos?: any,
-    public afterPhotos?: any
+    public afterPhotos?: any,
+    public beforePhotosCreateNew?: boolean,
+    public afterPhotosCreateNew?: boolean
   ) {}
 }

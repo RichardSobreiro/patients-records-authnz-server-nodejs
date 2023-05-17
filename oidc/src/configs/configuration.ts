@@ -59,6 +59,12 @@ export const configuration: Configuration = {
       grant_types: ["password", "refresh_token", "facebook"],
       scope: "openid email profile phone address",
     },
+    {
+      client_id: "mobile_patients_records",
+      client_secret: "mobile_patients_records",
+      grant_types: ["authorization_code", "refresh_token"],
+      scope: "openid email profile phone address offline_access api:read",
+    },
   ],
   claims: {
     address: ["address"],
@@ -110,8 +116,8 @@ export const configuration: Configuration = {
       getResourceServerInfo() {
         return {
           scope: "api:read offline_access",
-          accessTokenTTL: 2 * 60 * 60, // 2 hours
-          accessTokenFormat: "jwt",
+          accessTokenTTL: 24 * 60 * 60, // 24 hours
+          accessTokenFormat: "opaque",
         };
       },
     },

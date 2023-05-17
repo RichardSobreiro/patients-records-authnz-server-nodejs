@@ -11,7 +11,7 @@ import * as accountService from "../../services/account-persist.service";
 
 export const gty = "password";
 
-export const parameters = ["username", "password", "resource", "scope"];
+export const parameters = ["email", "password", "resource", "scope"];
 
 export const passwordHandler: Middleware = async function (ctx, next) {
   const {
@@ -28,18 +28,18 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     expiresWithSession,
   } = instance(ctx.oidc.provider).configuration();
 
-  presence(ctx, "username", "password");
+  presence(ctx, "email", "password");
 
   const params = ctx.oidc.params;
 
-  const doc = await accountService.get(params.username);
+  const doc = await accountService.get(params.email);
   if (doc.password !== params.password) {
     throw new InvalidGrant("password grant invalid");
   }
 
   const account = await ctx.oidc.provider.Account.findAccount(
     ctx,
-    params.username
+    params.email
   );
 
   ctx.oidc.entity("Account", account);
@@ -230,6 +230,8 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     refresh_token: refreshToken,
     scope: at.scope,
     token_type: at.tokenType,
+    username: doc.username,
+    email: doc.email,
   };
 
   await next();

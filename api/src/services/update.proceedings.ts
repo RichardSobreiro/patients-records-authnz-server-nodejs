@@ -57,17 +57,19 @@ export const updateProceeding = async (
   const beforePhotos = files["beforePhotos"];
   const afterPhotos = files["afterPhotos"];
 
-  const deletedProceedingsPhotos = await ProceedingPhotos.find({
-    proceedingId: proceedingId,
-  });
-
-  for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
-    await containerClient.deleteBlob(deletedProceedingPhoto.filename);
+  if (request.beforePhotosCreateNew) {
+    const deletedProceedingsPhotos = await ProceedingPhotos.find({
+      proceedingId: proceedingId,
+      proceedingPhotoType: "beforePhotos",
+    });
+    for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
+      await containerClient.deleteBlob(deletedProceedingPhoto.filename);
+    }
+    await ProceedingPhotos.deleteMany({
+      proceedingId: proceedingId,
+      proceedingPhotoType: "beforePhotos",
+    });
   }
-
-  await ProceedingPhotos.deleteMany({
-    proceedingId: proceedingId,
-  });
 
   if (beforePhotos && beforePhotos.length > 0) {
     response.beforePhotos = await processBeforePhotos(
@@ -76,6 +78,20 @@ export const updateProceeding = async (
       proceedingId,
       patient?.userId!
     );
+  }
+
+  if (request.afterPhotosCreateNew) {
+    const deletedProceedingsPhotos = await ProceedingPhotos.find({
+      proceedingId: proceedingId,
+      proceedingPhotoType: "afterPhotos",
+    });
+    for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
+      await containerClient.deleteBlob(deletedProceedingPhoto.filename);
+    }
+    await ProceedingPhotos.deleteMany({
+      proceedingId: proceedingId,
+      proceedingPhotoType: "afterPhotos",
+    });
   }
 
   if (afterPhotos && afterPhotos.length > 0) {

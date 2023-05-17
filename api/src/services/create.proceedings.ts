@@ -50,6 +50,8 @@ export const createProceeding = async (
 
   const containerClient = await createContainerClient(patient?.userId!);
 
+  containerClient.createIfNotExists();
+
   const beforePhotos = files["beforePhotos"];
   if (beforePhotos && beforePhotos.length > 0) {
     response.beforePhotos = await processBeforePhotos(

@@ -16,19 +16,19 @@ function debug(obj: any) {
 export default (oidc: Provider): { [key: string]: Middleware } => ({
   login: async (ctx) => {
     const requestBody = ctx.request.body as {
-      username: string;
-      password?: string;
+      password: string;
+      email: string;
     };
     const {
       prompt: { name },
     } = await oidc.interactionDetails(ctx.req, ctx.res);
     if (name === "login") {
-      const account = await accountService.get(requestBody.username);
+      const account = await accountService.get(requestBody.email);
       let result: any;
       if (account?.password === requestBody.password) {
         result = {
           login: {
-            accountId: requestBody.username,
+            accountId: requestBody.email,
           },
         };
       } else {
@@ -45,13 +45,20 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
   register: async (ctx) => {
     const body = ctx.request.body as {
       username: string;
-      password?: string;
+      email: string;
+      password: string;
     };
-    await accountService.set(body.username, {
+    await accountService.set(body.email, {
+      email: body.email,
       username: body.username,
       password: body.password,
     });
-    ctx.message = "User successfully created.";
+    ctx.message = "Created";
+    ctx.status = 201;
+    ctx.response.body = JSON.stringify({
+      email: body.email,
+      username: body.username,
+    });
   },
   confirmInteraction: async (ctx) => {
     const interactionDetails = await oidc.interactionDetails(ctx.req, ctx.res);

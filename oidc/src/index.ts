@@ -30,6 +30,8 @@ const start = async () => {
     { headers: { authorization }, oidc: { body, client } },
     err
   ) {
+    console.log(err.message);
+    console.log(err.stack);
     if (err.statusCode === 401 && err.message === "invalid_client") {
       // console.log(err);
       // save error details out-of-bands for the client developers, `authorization`, `body`, `client`
