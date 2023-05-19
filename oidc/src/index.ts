@@ -17,21 +17,24 @@ const start = async () => {
   await connectMongodb();
 
   const app = new Koa();
-  render(app, {
-    cache: false,
-    viewExt: "ejs",
-    layout: false,
-    root: path.resolve("oidc/src/views"),
-  });
+  // render(app, {
+  //   cache: false,
+  //   viewExt: "ejs",
+  //   layout: false,
+  //   root: path.resolve("oidc/src/views"),
+  // });
 
   const provider = oidc(process.env.OIDC_ISSUER as string, configuration);
 
-  function handleClientAuthErrors(
-    { headers: { authorization }, oidc: { body, client } },
-    err
-  ) {
+  function handleClientAuthErrors(ctx, err) {
     console.log(err.message);
     console.log(err.stack);
+    ctx.message = err.message;
+    ctx.status = 500;
+    ctx.response.body = JSON.stringify({
+      error: err.message,
+      stack_trace: err.stack,
+    });
     if (err.statusCode === 401 && err.message === "invalid_client") {
       // console.log(err);
       // save error details out-of-bands for the client developers, `authorization`, `body`, `client`
@@ -54,4 +57,4 @@ const start = async () => {
   });
 };
 
-void start();
+start();

@@ -2,14 +2,24 @@
 services:
   authnz:
     container_name: authnz
+    restart: always
+    build:
+      context: .
+      dockerfile: DockerfileAuthNZSrv.dev
     environment:
       - PORT=80
       - FACEBOOK_CLIENT_ID=592502122839259
       - FACEBOOK_CLIENT_SECRET=d59fa3a4fe5100112930c4a974054359
       - OIDC_ISSUER=http://localhost:3000
       - MONGODB_URI=mongodb+srv://richardsobreiro:XMP0ihb1EiKf5Zxm@patients-records-dev.zfwetxa.mongodb.net/?retryWrites=true&w=majority
+    ports:
+      - "3000:80"
   api:
     container_name: api
+    restart: always
+    build:
+      context: .
+      dockerfile: DockerfileAPI.dev
     environment:
       - PORT_API=80
       - FACEBOOK_CLIENT_ID=592502122839259
@@ -20,3 +30,9 @@ services:
       - MONGODB_URI=mongodb+srv://richardsobreiro:XMP0ihb1EiKf5Zxm@patients-records-dev.zfwetxa.mongodb.net/?retryWrites=true&w=majority
       - AZURE_STORAGE_ACCOUNT_NAME=rgbrzsproceedingsimages
       - AZURE_STORAGE_ACCOUNT_KEY=09jM0leU/IUVJ/RVOH28rFFbkFryYKA+tqU+HKF+7e061ltrxK9tqwbQkbdcJKbKTTlA9v5gKhud+AStNhOcPQ==
+    ports:
+      - "3006:80"
+    external_links:
+      - authnz
+    depends_on:
+      - authnz

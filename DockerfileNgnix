@@ -1,0 +1,6 @@
+FROM nginx:latest
+
+# NOTE: For now we do nothing, we just need to have the nginx image on the same registry as our
+# private containers
+
+COPY nginx.az.conf /etc/nginx/nginx.conf
