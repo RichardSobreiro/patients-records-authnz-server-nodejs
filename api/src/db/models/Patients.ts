@@ -10,6 +10,9 @@ interface Patient {
   birthDate: Date;
   creationDate: Date;
   email?: string;
+  mostRecentProceedingId?: string;
+  mostRecentProceedingDate?: Date;
+  mostRecentProceedingAfterPhotoUrl?: string;
 }
 
 const PatientsSchema = new Schema({
@@ -42,6 +45,15 @@ const PatientsSchema = new Schema({
     required: true,
   },
   email: {
+    type: String,
+  },
+  mostRecentProceedingId: {
+    type: String,
+  },
+  mostRecentProceedingDate: {
+    type: Date,
+  },
+  mostRecentProceedingAfterPhotoUrl: {
     type: String,
   },
 });

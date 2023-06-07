@@ -7,6 +7,7 @@ import {
   getProceedings,
   getProceedingsTypesByEmail,
 } from "../services/get.proceedings";
+import { UpdatePatientMostRecentProceedingProperties } from "../services/patients";
 import { UpdateProceedingRequest } from "../models/patients/proceedings/UpdateProceedingRequest";
 import { updateProceeding } from "../services/update.proceedings";
 
@@ -28,6 +29,8 @@ export default (): { [key: string]: Middleware } => ({
         requestBody,
         files
       );
+
+      await UpdatePatientMostRecentProceedingProperties(userId, patientId);
 
       ctx.status = 201;
       ctx.message = "Created";
@@ -54,6 +57,8 @@ export default (): { [key: string]: Middleware } => ({
         requestBody,
         files
       );
+
+      await UpdatePatientMostRecentProceedingProperties(userId, patientId);
 
       ctx.status = 200;
       ctx.message = "OK";

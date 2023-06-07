@@ -43,14 +43,19 @@ export default (): { [key: string]: Middleware } => ({
       const startDate = ctx.query.startDate as unknown as Date;
       const endDate = ctx.query.startDate as unknown as Date;
       const proceedingTypeId = ctx.query.startDate as string;
+      const pageNumber = ctx.query.pageNumber as string;
+      const limit = ctx.query.limit as string;
+
       const userId = ctx.state.session.sub as string;
 
       const responseBody = await GetPatients(
         userId,
+        pageNumber,
         patientName,
         startDate,
         endDate,
-        proceedingTypeId
+        proceedingTypeId,
+        limit
       );
 
       ctx.status = 200;

@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Proceedings } from "../db/models/Proceedings";
 import { UpdatePatientRequest } from "../models/patients/UpdatePatientRequest";
 import { UpdatePatientResponse } from "../models/patients/UpdatePatientResponse";
+import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
 
 export const CreatePatient = async (
   request: CreatePatientRequest
@@ -63,13 +64,79 @@ export const UpdatePatient = async (
   );
 };
 
+export const UpdatePatientMostRecentProceedingProperties = async (
+  userId: string,
+  patientId: string
+): Promise<void> => {
+  const proceedingDocuments = await Proceedings.find({
+    patientId: patientId,
+  })
+    .sort({ date: -1 })
+    .limit(1)
+    .exec();
+
+  if (proceedingDocuments.length === 1) {
+    const mostRecentProceedingId: string = proceedingDocuments[0].proceedingId;
+    const mostRecentProceedingDate: Date = proceedingDocuments[0].date;
+    let mostRecentProceedingAfterPhotoUrl: string | null = null;
+
+    const proceedingAfterPhotos = await ProceedingPhotos.find({
+      proceedingId: mostRecentProceedingId,
+      proceedingPhotoType: "afterPhotos",
+    });
+
+    if (proceedingAfterPhotos.length > 0) {
+      mostRecentProceedingAfterPhotoUrl = `${proceedingAfterPhotos[0].baseUrl}?${proceedingAfterPhotos[0].sasToken}`;
+    }
+
+    const result = await Patients.findOneAndUpdate(
+      { userId: userId, patientId: patientId },
+      {
+        mostRecentProceedingId,
+        mostRecentProceedingDate,
+        mostRecentProceedingAfterPhotoUrl,
+      }
+    );
+    if (result?.errors) {
+    }
+  }
+};
+
 export const GetPatients = async (
   userId: string,
+  pageNumberParam: string,
   patientName?: string,
   startDate?: Date,
   endDate?: Date,
-  proceedingTypeId?: string
+  proceedingTypeId?: string,
+  limitParam?: string
 ): Promise<GetPatientsResponse> => {
+  const pageNumber = (parseInt(pageNumberParam) || 1) - 1;
+  const limit = (limitParam && parseInt(limitParam)) || 12;
+
+  const totalPatients = await Patients.countDocuments({
+    userId: userId,
+  }).exec();
+
+  const response = new GetPatientsResponse(userId, totalPatients);
+
+  const startIndex = pageNumber * limit;
+  const endIndex = (pageNumber + 1) * limit;
+
+  if (startIndex > 0) {
+    response.previous = {
+      pageNumber: pageNumber - 1,
+      limit: limit,
+    };
+  }
+
+  if (endIndex < totalPatients) {
+    response.next = {
+      pageNumber: pageNumber + 1,
+      limit: limit,
+    };
+  }
+
   let patientDocuments: any[] = [];
   if (startDate || endDate || proceedingTypeId) {
     type Filter = {
@@ -96,19 +163,35 @@ export const GetPatients = async (
           patientId: { $in: patientsIds },
           patientName: { $regex: patientName, $options: "i" },
         })
+          .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+          .skip(startIndex)
+          .limit(limit)
+          .exec()
       : await Patients.find({
           userId: userId,
           patientId: { $in: patientsIds },
-        });
+        })
+          .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+          .skip(startIndex)
+          .limit(limit)
+          .exec();
   } else {
     patientDocuments = patientName
       ? await Patients.find({
           userId: userId,
           patientName: { $regex: patientName, $options: "i" },
         })
+          .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+          .skip(startIndex)
+          .limit(limit)
+          .exec()
       : await Patients.find({
           userId: userId,
-        });
+        })
+          .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+          .skip(startIndex)
+          .limit(limit)
+          .exec();
   }
 
   let patients: GetPatient[] = [];
@@ -121,12 +204,18 @@ export const GetPatients = async (
       entity.phoneNumber,
       entity.birthDate,
       entity.creationDate,
-      entity.email
+      entity.email,
+      entity.mostRecentProceedingId,
+      entity.mostRecentProceedingDate,
+      entity.mostRecentProceedingAfterPhotoUrl
     );
+
     patients.push(patient);
   });
 
-  return new GetPatientsResponse(patients!.length, patients!);
+  response.patients = patients;
+
+  return response;
 };
 
 export const GetPatientById = async (
