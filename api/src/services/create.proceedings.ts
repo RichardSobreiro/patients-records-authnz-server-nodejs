@@ -181,6 +181,7 @@ const createProceedingTypeIfNotExists = async (
   proceedingTypeDescription: string
 ): Promise<ProceedingType> => {
   let proceedingType: ProceedingType | null = await ProceedingTypes.findOne({
+    userId: userId,
     proceedingTypeDescription: {
       $regex: proceedingTypeDescription,
       $options: "i",

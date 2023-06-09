@@ -145,15 +145,13 @@ export const GetPatients = async (
       proceedingTypeId?: any;
     };
     let filterProceedings: Filter = {
-      userId: { userId: userId },
+      userId: userId,
     };
     if (startDate && endDate) {
       filterProceedings.date = { $gte: startDate, $lte: endDate };
     }
     if (proceedingTypeId) {
-      filterProceedings.proceedingTypeId = {
-        proceedingTypeId: proceedingTypeId,
-      };
+      filterProceedings.proceedingTypeId = proceedingTypeId;
     }
     const proceedingDocuments = await Proceedings.find(filterProceedings);
     const patientsIds = proceedingDocuments.map((p) => p.patientId);

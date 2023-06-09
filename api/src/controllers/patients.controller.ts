@@ -41,8 +41,8 @@ export default (): { [key: string]: Middleware } => ({
     try {
       const patientName = ctx.query.patientName as string;
       const startDate = ctx.query.startDate as unknown as Date;
-      const endDate = ctx.query.startDate as unknown as Date;
-      const proceedingTypeId = ctx.query.startDate as string;
+      const endDate = ctx.query.endDate as unknown as Date;
+      const proceedingTypeId = ctx.query.proceedingTypeId as string;
       const pageNumber = ctx.query.pageNumber as string;
       const limit = ctx.query.limit as string;
 
