@@ -15,7 +15,7 @@ export class GetPatient {
   ) {}
 }
 
-class ListPage {
+export class ListPage {
   constructor(public pageNumber: number, public limit: number) {}
 }
 

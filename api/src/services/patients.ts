@@ -6,6 +6,7 @@ import { Patients } from "../db/models/Patients";
 import {
   GetPatient,
   GetPatientsResponse,
+  ListPage,
 } from "../models/patients/GetPatientsResponse";
 
 import { v4 as uuidv4 } from "uuid";
@@ -102,6 +103,12 @@ export const UpdatePatientMostRecentProceedingProperties = async (
   }
 };
 
+type Filter = {
+  userId: any;
+  date?: any;
+  proceedingTypeId?: any;
+};
+
 export const GetPatients = async (
   userId: string,
   pageNumberParam: string,
@@ -114,36 +121,22 @@ export const GetPatients = async (
   const pageNumber = (parseInt(pageNumberParam) || 1) - 1;
   const limit = (limitParam && parseInt(limitParam)) || 12;
 
-  const totalPatients = await Patients.countDocuments({
-    userId: userId,
-  }).exec();
-
-  const response = new GetPatientsResponse(userId, totalPatients);
-
   const startIndex = pageNumber * limit;
   const endIndex = (pageNumber + 1) * limit;
 
-  if (startIndex > 0) {
-    response.previous = {
-      pageNumber: pageNumber - 1,
-      limit: limit,
-    };
-  }
+  let totalPatients = 0;
+  let previous: ListPage | undefined = undefined;
+  let next: ListPage | undefined = undefined;
 
-  if (endIndex < totalPatients) {
-    response.next = {
-      pageNumber: pageNumber + 1,
+  if (startIndex > 0) {
+    previous = {
+      pageNumber: pageNumber - 1,
       limit: limit,
     };
   }
 
   let patientDocuments: any[] = [];
   if (startDate || endDate || proceedingTypeId) {
-    type Filter = {
-      userId: any;
-      date?: any;
-      proceedingTypeId?: any;
-    };
     let filterProceedings: Filter = {
       userId: userId,
     };
@@ -153,9 +146,29 @@ export const GetPatients = async (
     if (proceedingTypeId) {
       filterProceedings.proceedingTypeId = proceedingTypeId;
     }
+
     const proceedingDocuments = await Proceedings.find(filterProceedings);
     const patientsIds = proceedingDocuments.map((p) => p.patientId);
-    patientDocuments = patientDocuments = patientName
+
+    totalPatients = patientName
+      ? await Patients.countDocuments({
+          userId: userId,
+          patientId: { $in: patientsIds },
+          patientName: { $regex: patientName, $options: "i" },
+        }).exec()
+      : await Patients.countDocuments({
+          userId: userId,
+          patientId: { $in: patientsIds },
+        }).exec();
+
+    if (endIndex < totalPatients) {
+      next = {
+        pageNumber: pageNumber + 1,
+        limit: limit,
+      };
+    }
+
+    patientDocuments = patientName
       ? await Patients.find({
           userId: userId,
           patientId: { $in: patientsIds },
@@ -174,23 +187,55 @@ export const GetPatients = async (
           .limit(limit)
           .exec();
   } else {
-    patientDocuments = patientName
-      ? await Patients.find({
-          userId: userId,
-          patientName: { $regex: patientName, $options: "i" },
-        })
-          .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-          .skip(startIndex)
-          .limit(limit)
-          .exec()
-      : await Patients.find({
-          userId: userId,
-        })
-          .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-          .skip(startIndex)
-          .limit(limit)
-          .exec();
+    if (patientName) {
+      totalPatients = await Patients.countDocuments({
+        userId: userId,
+        patientName: { $regex: patientName, $options: "i" },
+      }).exec();
+
+      if (endIndex < totalPatients) {
+        next = {
+          pageNumber: pageNumber + 1,
+          limit: limit,
+        };
+      }
+
+      patientDocuments = await Patients.find({
+        userId: userId,
+        patientName: { $regex: patientName, $options: "i" },
+      })
+        .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+        .skip(startIndex)
+        .limit(limit)
+        .exec();
+    } else {
+      totalPatients = await Patients.countDocuments({
+        userId: userId,
+      }).exec();
+
+      if (endIndex < totalPatients) {
+        next = {
+          pageNumber: pageNumber + 1,
+          limit: limit,
+        };
+      }
+
+      patientDocuments = await Patients.find({
+        userId: userId,
+      })
+        .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+        .skip(startIndex)
+        .limit(limit)
+        .exec();
+    }
   }
+
+  const response = new GetPatientsResponse(
+    userId,
+    totalPatients,
+    previous,
+    next
+  );
 
   let patients: GetPatient[] = [];
 
