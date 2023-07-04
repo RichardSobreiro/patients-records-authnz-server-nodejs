@@ -22,6 +22,8 @@ export default () => {
     updateProceeding,
   } = proceedingsController();
 
+  //------------------------------------------------------------------------------------------------------
+
   router.get("/pi", authenticate, authorize("api:read"), pi);
 
   router.post("/patients", authenticate, createPatient);

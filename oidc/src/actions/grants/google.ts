@@ -9,7 +9,7 @@ import resolveResource from "oidc-provider/lib/helpers/resolve_resource";
 import { Middleware } from "koa";
 import * as accountService from "../../services/account-persist.service";
 
-type FacebookInstrospectionResponse = {
+type GoogleInstrospectionResponse = {
   data: {
     app_id: string;
     is_valid: boolean;
@@ -17,14 +17,14 @@ type FacebookInstrospectionResponse = {
   };
 };
 
-type FacebookAccessTokenResponse = {
+type GoogleAccessTokenResponse = {
   access_token: string;
   token_type: string;
 };
 
-export const gtyFacebook = "facebook";
+export const gtyGoogle = "google";
 
-export const parametersFacebook = [
+export const parametersGoogle = [
   "client_id",
   "access_token",
   "user_id",
@@ -35,7 +35,7 @@ export const parametersFacebook = [
   "scope",
 ];
 
-export const facebookHandler: Middleware = async function (ctx, next) {
+export const googleHandler: Middleware = async function (ctx, next) {
   const {
     issueRefreshToken,
     conformIdTokenClaims,
@@ -62,25 +62,9 @@ export const facebookHandler: Middleware = async function (ctx, next) {
 
   const params = ctx.oidc.params;
 
-  // const accessTokenUrl: string = `https://graph.facebook.com/oauth/access_token?grant_type=client_credentials&client_id=${process.env.FACEBOOK_CLIENT_ID}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}`;
-  // const responseAccessToken: Response = await fetch(accessTokenUrl);
-  // const resultAccessToken =
-  //   (await responseAccessToken.json()) as FacebookAccessTokenResponse;
-  // const url: string = `https://graph.facebook.com/v16.0/debug_token?input_token=${params.access_token}&access_token=${resultAccessToken.access_token}`;
-  // const response: Response = await fetch(url);
-  // const result = (await response.json()) as FacebookInstrospectionResponse;
-  // if (
-  //   !result.data.is_valid ||
-  //   result.data.app_id !== params.app_id ||
-  //   result.data.user_id !== params.user_id
-  // ) {
-  //   ctx.throw(400, "Invalid access token.");
-  // }
+  // TODO: CALL GOOGLE INSTROSPECTION ENDPOINT
 
   const doc = await accountService.get(params.email);
-  // if (doc.password !== params.password) {
-  //   throw new InvalidGrant("password grant invalid");
-  // }
   if (!doc) {
     await accountService.set(params.email, {
       username: params.username,
@@ -88,7 +72,7 @@ export const facebookHandler: Middleware = async function (ctx, next) {
       password: null,
       signupComplete: false,
       origin: {
-        type: "Facebook",
+        type: "Google",
         thirdPartyUserId: params.user_id,
       },
       picture: {
@@ -172,7 +156,7 @@ export const facebookHandler: Middleware = async function (ctx, next) {
     client: ctx.oidc.client,
     expiresWithSession: password.expiresWithSession,
     grantId: password.grantId,
-    gtyFacebook,
+    gtyGoogle,
     sessionUid: password.sessionUid,
     sid: password.sid,
     resourceIndicators: resourceIndicators,
@@ -231,7 +215,7 @@ export const facebookHandler: Middleware = async function (ctx, next) {
       client: ctx.oidc.client,
       expiresWithSession: password.expiresWithSession,
       grantId: password.grantId,
-      gtyFacebook,
+      gtyGoogle,
       nonce: password.nonce,
       resource: resource,
       rotations: 0,

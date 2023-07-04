@@ -1,7 +1,7 @@
 /** @format */
 
 import Koa from "koa";
-import render from "koa-ejs";
+import cors from "@koa/cors";
 import mount from "koa-mount";
 import koaStatic from "koa-static";
 import path from "path";
@@ -10,6 +10,7 @@ import { oidc } from "./configs/provider";
 import connectMongodb from "./db/mongodb/connection";
 import router from "./routes";
 import * as dotenv from "dotenv";
+import render from "koa-ejs";
 
 dotenv.config();
 
@@ -17,12 +18,12 @@ const start = async () => {
   await connectMongodb();
 
   const app = new Koa();
-  // render(app, {
-  //   cache: false,
-  //   viewExt: "ejs",
-  //   layout: false,
-  //   root: path.resolve("oidc/src/views"),
-  // });
+  render(app, {
+    cache: false,
+    viewExt: "ejs",
+    layout: false,
+    root: path.resolve("oidc/src/views"),
+  });
 
   const provider = oidc(process.env.OIDC_ISSUER as string, configuration);
 
@@ -49,6 +50,21 @@ const start = async () => {
   provider.on("jwks.error", handleClientAuthErrors);
 
   app.use(koaStatic(path.resolve("public")));
+  app.use(cors());
+  app.use(async (ctx, next) => {
+    ctx.set("Content-Type", "application/json; charset=utf-8");
+    ctx.set("Access-Control-Allow-Origin", "*");
+    ctx.set(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    ctx.set(
+      "Access-Control-Allow-Methods",
+      "POST, GET, PUT, PATCH, DELETE, OPTIONS"
+    );
+    await next();
+  });
+
   app.use(router(provider).routes());
   app.use(mount(provider.app));
 

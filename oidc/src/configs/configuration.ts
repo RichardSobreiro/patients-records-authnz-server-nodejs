@@ -32,9 +32,12 @@ export const configuration: Configuration = {
   },
   clients: [
     {
-      client_id: "app",
-      client_secret: "scorpion",
-      redirect_uris: ["http://localhost:3005/cb"],
+      client_id: "web",
+      client_secret: "archtungpanzer",
+      redirect_uris: [
+        "http://localhost:3000/entrar",
+        "https://oidcdebugger.com/debug",
+      ],
       grant_types: [
         "authorization_code",
         "password",
@@ -60,12 +63,32 @@ export const configuration: Configuration = {
       scope: "openid email profile phone address",
     },
     {
+      client_id: "social_google",
+      client_secret: "social_google",
+      redirect_uris: [],
+      response_types: [],
+      grant_types: ["password", "refresh_token", "google"],
+      scope: "openid email profile phone address",
+    },
+    {
       client_id: "mobile_patients_records",
       client_secret: "mobile_patients_records",
       grant_types: ["authorization_code", "refresh_token"],
       scope: "openid email profile phone address offline_access api:read",
     },
+    {
+      client_id: "web_professionals",
+      client_secret: "web_professionals",
+      redirect_uris: [],
+      response_types: [],
+      grant_types: ["password", "refresh_token"],
+      scope: "openid email profile phone address",
+    },
   ],
+  pkce: {
+    required: () => false,
+    methods: ["plain", "S256"],
+  },
   claims: {
     address: ["address"],
     email: ["email", "email_verified"],

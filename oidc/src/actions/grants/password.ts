@@ -11,7 +11,7 @@ import * as accountService from "../../services/account-persist.service";
 
 export const gty = "password";
 
-export const parameters = ["email", "password", "resource", "scope"];
+export const parameters = ["usernameEmail", "password", "resource", "scope"];
 
 export const passwordHandler: Middleware = async function (ctx, next) {
   const {
@@ -28,19 +28,28 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     expiresWithSession,
   } = instance(ctx.oidc.provider).configuration();
 
-  presence(ctx, "email", "password");
+  presence(ctx, "usernameEmail", "password");
 
   const params = ctx.oidc.params;
 
-  const doc = await accountService.get(params.email);
+  let doc = await accountService.get(params.usernameEmail);
+  if (!doc) {
+    doc = await accountService.getByUsername(params.usernameEmail);
+    if (!doc) {
+      ctx.statusCode = 422;
+      ctx.message = "Usuário não encontrado";
+      ctx.body = JSON.stringify({
+        statusCode: 422,
+        message: "Usuário não encontrado",
+      });
+      await next();
+    }
+  }
   if (doc.password !== params.password) {
     throw new InvalidGrant("password grant invalid");
   }
 
-  const account = await ctx.oidc.provider.Account.findAccount(
-    ctx,
-    params.email
-  );
+  const account = await ctx.oidc.provider.Account.findAccount(ctx, doc.email);
 
   ctx.oidc.entity("Account", account);
 
@@ -232,6 +241,10 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     token_type: at.tokenType,
     username: doc.username,
     email: doc.email,
+    userCreationCompleted: doc.userCreationCompleted,
+    userPlanId: doc.userPlanId,
+    paymentOk: doc.paymentOk,
+    companyName: doc.companyName,
   };
 
   await next();
