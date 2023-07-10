@@ -1,5 +1,7 @@
 /** @format */
 
+import { PaymentProcessingResponse } from "./payments/PaymentProcessingResponse";
+
 export class AditionalInfoResponse {
   constructor(
     public userPlanId: string,
@@ -7,8 +9,7 @@ export class AditionalInfoResponse {
     public userCPF: string,
     public userCreationCompleted: boolean,
 
-    public paymentOk: boolean,
-    public paymentStatus: string,
+    public paymentProcessingInfo: PaymentProcessingResponse,
 
     public userAddressCEP: string,
     public userAddressStreet: string,

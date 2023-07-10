@@ -171,9 +171,15 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
         requestBody
       );
 
-      ctx.status = 200;
-      ctx.message = "OK";
-      ctx.response.body = JSON.stringify(responseBody);
+      if (responseBody.paymentProcessingInfo.paymentOk) {
+        ctx.status = 200;
+        ctx.message = "OK";
+        ctx.response.body = JSON.stringify(responseBody);
+      } else {
+        ctx.status = 422;
+        ctx.message = responseBody.paymentProcessingInfo.message;
+        ctx.response.body = JSON.stringify(responseBody);
+      }
     } catch (e: any) {
       console.log(e);
       ctx.status = 422;

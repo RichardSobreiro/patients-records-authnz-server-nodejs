@@ -51,11 +51,23 @@ const AccountSchema = new Schema({
     type: String,
     required: false,
   },
+  phoneAreaCode: {
+    type: String,
+    required: false,
+  },
+  phoneNumber: {
+    type: String,
+    required: false,
+  },
   userAddressCEP: {
     type: String,
     required: false,
   },
   userAddressStreet: {
+    type: String,
+    required: false,
+  },
+  userAddressNumber: {
     type: String,
     required: false,
   },
@@ -74,6 +86,10 @@ const AccountSchema = new Schema({
   userAddressState: {
     type: String,
     required: false,
+  },
+  paymentInfo: {
+    type: Object,
+    required: true,
   },
 });
 
