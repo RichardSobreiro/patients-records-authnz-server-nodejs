@@ -1,14 +1,14 @@
 /** @format */
 import { Middleware, Request } from "koa";
-import { CreateProceedingRequest } from "../models/patients/proceedings/CreateProceedingRequest";
+import { CreateProceedingRequest } from "../models/customers/proceedings/CreateProceedingRequest";
 import { createProceeding } from "../services/create.proceedings";
 import {
   getProceedingById,
   getProceedings,
   getProceedingsTypesByEmail,
 } from "../services/get.proceedings";
-import { UpdatePatientMostRecentProceedingProperties } from "../services/patients";
-import { UpdateProceedingRequest } from "../models/patients/proceedings/UpdateProceedingRequest";
+import { UpdateCustomerMostRecentProceedingProperties } from "../services/customers";
+import { UpdateProceedingRequest } from "../models/customers/proceedings/UpdateProceedingRequest";
 import { updateProceeding } from "../services/update.proceedings";
 
 interface MulterRequest extends Request {
@@ -20,17 +20,17 @@ export default (): { [key: string]: Middleware } => ({
     try {
       const files = (ctx.request as MulterRequest).files;
       const requestBody = ctx.request.body as CreateProceedingRequest;
-      const patientId = ctx.params.patientId;
+      const customerId = ctx.params.customerId;
       const userId = ctx.state.session.sub as string;
 
       const responseBody = await createProceeding(
         userId,
-        patientId,
+        customerId,
         requestBody,
         files
       );
 
-      await UpdatePatientMostRecentProceedingProperties(userId, patientId);
+      await UpdateCustomerMostRecentProceedingProperties(userId, customerId);
 
       ctx.status = 201;
       ctx.message = "Created";
@@ -46,19 +46,19 @@ export default (): { [key: string]: Middleware } => ({
     try {
       const files = (ctx.request as MulterRequest).files;
       const requestBody = ctx.request.body as UpdateProceedingRequest;
-      const patientId = ctx.params.patientId;
+      const customerId = ctx.params.customerId;
       const proceedingId = ctx.params.proceedingId;
       const userId = ctx.state.session.sub as string;
 
       const responseBody = await updateProceeding(
         userId,
-        patientId,
+        customerId,
         proceedingId,
         requestBody,
         files
       );
 
-      await UpdatePatientMostRecentProceedingProperties(userId, patientId);
+      await UpdateCustomerMostRecentProceedingProperties(userId, customerId);
 
       ctx.status = 200;
       ctx.message = "OK";
@@ -72,10 +72,10 @@ export default (): { [key: string]: Middleware } => ({
   },
   getProceedingById: async (ctx) => {
     try {
-      const patientId = ctx.params.patientId;
+      const customerId = ctx.params.customerId;
       const proceedingId = ctx.params.proceedingId;
 
-      const responseBody = await getProceedingById(patientId, proceedingId);
+      const responseBody = await getProceedingById(customerId, proceedingId);
 
       ctx.status = 200;
       ctx.message = "Ok";
@@ -89,11 +89,11 @@ export default (): { [key: string]: Middleware } => ({
   },
   getProceedings: async (ctx) => {
     try {
-      const patientId = ctx.params.patientId;
+      const customerId = ctx.params.customerId;
       const pageNumber = ctx.query.pageNumber as string;
       const limit = ctx.query.limit as string;
 
-      const responseBody = await getProceedings(patientId, pageNumber, limit);
+      const responseBody = await getProceedings(customerId, pageNumber, limit);
 
       ctx.status = 200;
       ctx.message = "Ok";

@@ -2,10 +2,10 @@
 
 import mongoose, { Schema } from "mongoose";
 
-interface Patient {
+interface Customer {
   userId: string;
-  patientId: string;
-  patientName: string;
+  customerId: string;
+  customerName: string;
   phoneNumber: string;
   birthDate: Date;
   creationDate: Date;
@@ -15,29 +15,25 @@ interface Patient {
   mostRecentProceedingAfterPhotoUrl?: string;
 }
 
-const PatientsSchema = new Schema({
+const CustomersSchema = new Schema({
   userId: {
     type: String,
     required: true,
     index: true,
   },
-  patientId: {
+  customerId: {
     type: String,
     unique: true,
     required: true,
     index: true,
   },
-  patientName: {
+  customerName: {
     type: String,
     required: true,
     index: true,
   },
   phoneNumber: {
     type: String,
-    required: true,
-  },
-  birthDate: {
-    type: Date,
     required: true,
   },
   creationDate: {
@@ -58,4 +54,7 @@ const PatientsSchema = new Schema({
   },
 });
 
-export const Patients = mongoose.model<Patient>("Patients", PatientsSchema);
+export const CustomersRepository = mongoose.model<Customer>(
+  "Customers",
+  CustomersSchema
+);

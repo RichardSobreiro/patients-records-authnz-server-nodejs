@@ -2,23 +2,24 @@
 
 import { Middleware } from "koa";
 import {
-  CreatePatient,
-  GetPatients,
-  GetPatientById,
-  UpdatePatient,
-} from "../services/patients";
-import { CreatePatientRequest } from "../models/patients/CreatePatientRequest";
-import { UpdatePatientRequest } from "../models/patients/UpdatePatientRequest";
+  CreateCustomer,
+  GetCustomers,
+  GetCustomerById,
+  UpdateCustomer,
+} from "../services/customers";
+import { CreateCustomerRequest } from "../models/customers/CreateCustomerRequest";
+import { UpdateCustomerRequest } from "../models/customers/UpdateCustomerRequest";
 
 export default (): { [key: string]: Middleware } => ({
   pi: async (ctx) => {
     ctx.status = 200;
     ctx.message = Math.PI.toString();
   },
-  createPatient: async (ctx) => {
+  createCustomer: async (ctx) => {
     try {
-      const requestBody = ctx.request.body as CreatePatientRequest;
-      const responseBody = await CreatePatient(requestBody);
+      const userEmail = ctx.state.session.sub as string;
+      const requestBody = ctx.request.body as CreateCustomerRequest;
+      const responseBody = await CreateCustomer(userEmail, requestBody);
       ctx.status = 201;
       ctx.message = "Created";
       ctx.response.body = JSON.stringify(responseBody);
@@ -26,10 +27,10 @@ export default (): { [key: string]: Middleware } => ({
       console.log(e);
     }
   },
-  updatePatient: async (ctx) => {
+  updateCustomer: async (ctx) => {
     try {
-      const requestBody = ctx.request.body as UpdatePatientRequest;
-      const responseBody = await UpdatePatient(requestBody);
+      const requestBody = ctx.request.body as UpdateCustomerRequest;
+      const responseBody = await UpdateCustomer(requestBody);
       ctx.status = 200;
       ctx.message = "OK";
       ctx.response.body = JSON.stringify(responseBody);
@@ -37,9 +38,9 @@ export default (): { [key: string]: Middleware } => ({
       console.log(e);
     }
   },
-  getPatients: async (ctx) => {
+  getCustomers: async (ctx) => {
     try {
-      const patientName = ctx.query.patientName as string;
+      const customerName = ctx.query.customerName as string;
       const startDate = ctx.query.startDate as unknown as Date;
       const endDate = ctx.query.endDate as unknown as Date;
       const proceedingTypeId = ctx.query.proceedingTypeId as string;
@@ -48,10 +49,10 @@ export default (): { [key: string]: Middleware } => ({
 
       const userId = ctx.state.session.sub as string;
 
-      const responseBody = await GetPatients(
+      const responseBody = await GetCustomers(
         userId,
         pageNumber,
-        patientName,
+        customerName,
         startDate,
         endDate,
         proceedingTypeId,
@@ -65,10 +66,10 @@ export default (): { [key: string]: Middleware } => ({
       console.log(e);
     }
   },
-  getPatientById: async (ctx) => {
+  getCustomerById: async (ctx) => {
     try {
       const userId = ctx.state.session.sub as string;
-      const responseBody = await GetPatientById(userId, ctx.params.patientId);
+      const responseBody = await GetCustomerById(userId, ctx.params.customerId);
       ctx.status = 200;
       ctx.message = "OK";
       ctx.response.body = JSON.stringify(responseBody);

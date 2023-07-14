@@ -2,12 +2,12 @@
 import { ProceedingTypes, ProceedingType } from "../db/models/ProceedingTypes";
 import { Proceedings } from "../db/models/Proceedings";
 import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
-import { Patients } from "../db/models/Patients";
-import { CreateProceedingRequest } from "../models/patients/proceedings/CreateProceedingRequest";
+import { CustomersRepository } from "../db/models/CustomersRepository";
+import { CreateProceedingRequest } from "../models/customers/proceedings/CreateProceedingRequest";
 import {
   CreateProceedingPhotosResponse,
   CreateProceedingResponse,
-} from "../models/patients/proceedings/CreateProceedingResponse";
+} from "../models/customers/proceedings/CreateProceedingResponse";
 import {
   createBlobClient,
   createContainerClient,
@@ -20,14 +20,16 @@ import { ContainerClient } from "@azure/storage-blob";
 
 export const createProceeding = async (
   userId: string,
-  patientId: string,
+  customerId: string,
   request: CreateProceedingRequest,
   files: any
 ): Promise<CreateProceedingResponse> => {
-  const patient = await Patients.findOne({ patientId: patientId });
+  const customer = await CustomersRepository.findOne({
+    customerId: customerId,
+  });
 
   const proceedingType = await createProceedingTypeIfNotExists(
-    patient?.userId!,
+    customer?.userId!,
     request.proceedingTypeDescription
   );
 
@@ -35,7 +37,7 @@ export const createProceeding = async (
     userId: userId,
     proceedingId: uuidv4(),
     creationDate: new Date(),
-    patientId: patientId,
+    customerId: customerId,
     date: new Date(request.date),
     proceedingTypeId: proceedingType.proceedingTypeId,
     notes: request.notes,
@@ -48,7 +50,7 @@ export const createProceeding = async (
     proceeding.notes
   );
 
-  const containerClient = await createContainerClient(patient?.userId!);
+  const containerClient = await createContainerClient(customer?.userId!);
 
   containerClient.createIfNotExists();
 
@@ -58,7 +60,7 @@ export const createProceeding = async (
       beforePhotos,
       containerClient,
       proceeding.proceedingId,
-      patient?.userId!
+      customer?.userId!
     );
   }
 
@@ -68,7 +70,7 @@ export const createProceeding = async (
       afterPhotos,
       containerClient,
       proceeding.proceedingId,
-      patient?.userId!
+      customer?.userId!
     );
   }
 

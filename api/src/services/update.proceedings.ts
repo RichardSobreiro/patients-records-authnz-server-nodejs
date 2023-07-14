@@ -2,12 +2,12 @@
 import { ProceedingTypes, ProceedingType } from "../db/models/ProceedingTypes";
 import { Proceedings } from "../db/models/Proceedings";
 import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
-import { Patients } from "../db/models/Patients";
-import { UpdateProceedingRequest } from "../models/patients/proceedings/UpdateProceedingRequest";
+import { CustomersRepository } from "../db/models/CustomersRepository";
+import { UpdateProceedingRequest } from "../models/customers/proceedings/UpdateProceedingRequest";
 import {
   UpdateProceedingPhotosResponse,
   UpdateProceedingResponse,
-} from "../models/patients/proceedings/UpdateProceedingResponse";
+} from "../models/customers/proceedings/UpdateProceedingResponse";
 import {
   createBlobClient,
   createContainerClient,
@@ -20,15 +20,17 @@ import { ContainerClient } from "@azure/storage-blob";
 
 export const updateProceeding = async (
   userId: string,
-  patientId: string,
+  customerId: string,
   proceedingId: string,
   request: UpdateProceedingRequest,
   files: any
 ): Promise<UpdateProceedingResponse> => {
-  const patient = await Patients.findOne({ patientId: patientId });
+  const customer = await CustomersRepository.findOne({
+    customerId: customerId,
+  });
 
   const proceedingType = await createProceedingTypeIfNotExists(
-    patient?.userId!,
+    customer?.userId!,
     request.proceedingTypeDescription
   );
 
@@ -38,7 +40,7 @@ export const updateProceeding = async (
       userId: userId,
       proceedingId: proceedingId,
       creationDate: new Date(),
-      patientId: patientId,
+      customerId: customerId,
       date: new Date(request.date),
       proceedingTypeId: proceedingType.proceedingTypeId,
       notes: request.notes,
@@ -52,7 +54,7 @@ export const updateProceeding = async (
     request!.notes
   );
 
-  const containerClient = await createContainerClient(patient?.userId!);
+  const containerClient = await createContainerClient(customer?.userId!);
 
   const beforePhotos = files["beforePhotos"];
   const afterPhotos = files["afterPhotos"];
@@ -76,7 +78,7 @@ export const updateProceeding = async (
       beforePhotos,
       containerClient,
       proceedingId,
-      patient?.userId!
+      customer?.userId!
     );
   }
 
@@ -99,7 +101,7 @@ export const updateProceeding = async (
       afterPhotos,
       containerClient,
       proceedingId,
-      patient?.userId!
+      customer?.userId!
     );
   }
 

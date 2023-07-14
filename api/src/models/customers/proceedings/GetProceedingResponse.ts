@@ -28,7 +28,7 @@ class ListPage {
 
 export class GetProceedingsResponse {
   constructor(
-    public patientId: string,
+    public customerId: string,
     public proceedingsCount: number,
     public previous?: ListPage,
     public next?: ListPage,

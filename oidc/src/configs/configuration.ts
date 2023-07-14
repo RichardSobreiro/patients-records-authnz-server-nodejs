@@ -71,8 +71,8 @@ export const configuration: Configuration = {
       scope: "openid email profile phone address",
     },
     {
-      client_id: "mobile_patients_records",
-      client_secret: "mobile_patients_records",
+      client_id: "mobile_customers_records",
+      client_secret: "mobile_customers_records",
       grant_types: ["authorization_code", "refresh_token"],
       scope: "openid email profile phone address offline_access api:read",
     },

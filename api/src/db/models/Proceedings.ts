@@ -6,7 +6,7 @@ interface Proceeding {
   userId: string;
   proceedingId: string;
   creationDate: Date;
-  patientId: string;
+  customerId: string;
   date: Date;
   proceedingTypeId: string;
   notes: string;
@@ -29,7 +29,7 @@ const ProceedingsSchema = new Schema({
     required: true,
     index: true,
   },
-  patientId: {
+  customerId: {
     type: String,
     required: true,
     index: true,

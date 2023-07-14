@@ -2,7 +2,7 @@
 
 import Router from "koa-router";
 import multer from "@koa/multer";
-import patientsController from "../controllers/patients.controller";
+import customersController from "../controllers/customers.controller";
 import proceedingsController from "../controllers/proceedings.controller";
 import { authenticate, authorize } from "../middlewares/auth.middleware";
 
@@ -11,8 +11,8 @@ const upload = multer();
 export default () => {
   const router = new Router();
 
-  const { pi, createPatient, getPatients, getPatientById, updatePatient } =
-    patientsController();
+  const { pi, createCustomer, getCustomers, getCustomerById, updateCustomer } =
+    customersController();
 
   const {
     createProceeding,
@@ -26,16 +26,16 @@ export default () => {
 
   router.get("/pi", authenticate, authorize("api:read"), pi);
 
-  router.post("/patients", authenticate, createPatient);
+  router.post("/customers", authenticate, createCustomer);
 
-  router.put("/patients/:patientId", authenticate, updatePatient);
+  router.put("/customers/:customerId", authenticate, updateCustomer);
 
-  router.get("/patients", authenticate, getPatients);
+  router.get("/customers", authenticate, getCustomers);
 
-  router.get("/patients/:patientId", authenticate, getPatientById);
+  router.get("/customers/:customerId", authenticate, getCustomerById);
   //------------------------------------------------------------------------------------------------------
   router.post(
-    "/patients/:patientId/proceedings",
+    "/customers/:customerId/proceedings",
     authenticate,
     upload.fields([
       {
@@ -60,7 +60,7 @@ export default () => {
   );
 
   router.put(
-    "/patients/:patientId/proceedings/:proceedingId",
+    "/customers/:customerId/proceedings/:proceedingId",
     authenticate,
     upload.fields([
       {
@@ -85,12 +85,16 @@ export default () => {
   );
 
   router.get(
-    "/patients/:patientId/proceedings/:proceedingId",
+    "/customers/:customerId/proceedings/:proceedingId",
     authenticate,
     getProceedingById
   );
 
-  router.get("/patients/:patientId/proceedings", authenticate, getProceedings);
+  router.get(
+    "/customers/:customerId/proceedings",
+    authenticate,
+    getProceedings
+  );
 
   router.get(
     "/professionals/:email/proceedings/types",

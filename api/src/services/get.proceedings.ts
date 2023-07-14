@@ -2,24 +2,26 @@
 import { ProceedingTypes } from "../db/models/ProceedingTypes";
 import { Proceedings } from "../db/models/Proceedings";
 import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
-import { Patients } from "../db/models/Patients";
+import { CustomersRepository } from "../db/models/CustomersRepository";
 import {
   GetProceedingResponse,
   GetProceedingPhotosResponse,
   GetProceedingsResponse,
-} from "../models/patients/proceedings/GetProceedingResponse";
+} from "../models/customers/proceedings/GetProceedingResponse";
 
 import { createBlobSas } from "./azure/azure.storage.account";
 import {
   GetProceedingTypeResponse,
   GetProceedingTypesResponse,
-} from "../models/patients/proceedings/GetProceedingTypesResponse";
+} from "../models/customers/proceedings/GetProceedingTypesResponse";
 
 export const getProceedingById = async (
-  patientId: string,
+  customerId: string,
   proceedingId: string
 ): Promise<GetProceedingResponse> => {
-  const patient = await Patients.findOne({ patientId: patientId });
+  const customer = await CustomersRepository.findOne({
+    customerId: customerId,
+  });
 
   const proceeding = await Proceedings.findOne({ proceedingId: proceedingId });
 
@@ -45,7 +47,7 @@ export const getProceedingById = async (
   });
   response.beforePhotos = await createPhotoResponse(
     beforePhotos,
-    patient?.userId!,
+    customer?.userId!,
     thresholdDateTime,
     proceedingId
   );
@@ -54,7 +56,7 @@ export const getProceedingById = async (
   });
   response.afterPhotos = await createPhotoResponse(
     afterPhotos,
-    patient?.userId!,
+    customer?.userId!,
     thresholdDateTime,
     proceedingId
   );
@@ -63,23 +65,25 @@ export const getProceedingById = async (
 };
 
 export const getProceedings = async (
-  patientId: string,
+  customerId: string,
   pageNumberParam: string,
   limitParam?: string
 ): Promise<GetProceedingsResponse> => {
-  const patient = await Patients.findOne({ patientId: patientId });
+  const customer = await CustomersRepository.findOne({
+    customerId: customerId,
+  });
 
   const pageNumber = parseInt(pageNumberParam) || 0;
   const limit = (limitParam && parseInt(limitParam)) || 12;
 
   const totalProceedings = await Proceedings.countDocuments({
-    patientId: patientId,
+    customerId: customerId,
   }).exec();
 
   const startIndex = pageNumber * limit;
   const endIndex = (pageNumber + 1) * limit;
   const response: GetProceedingsResponse = new GetProceedingsResponse(
-    patient?.patientId!,
+    customer?.customerId!,
     totalProceedings
   );
 
@@ -96,7 +100,7 @@ export const getProceedings = async (
     };
   }
   const proceedingDocuments = await Proceedings.find({
-    patientId: patientId,
+    customerId: customerId,
   })
     .sort("-_id")
     .skip(startIndex)
@@ -126,7 +130,7 @@ export const getProceedings = async (
     });
     proceeding.beforePhotos = await createPhotoResponse(
       beforePhotos,
-      patient?.userId!,
+      customer?.userId!,
       thresholdDateTime,
       proceedingDocument.proceedingId
     );
@@ -135,7 +139,7 @@ export const getProceedings = async (
     });
     proceeding.afterPhotos = await createPhotoResponse(
       afterPhotos,
-      patient?.userId!,
+      customer?.userId!,
       thresholdDateTime,
       proceedingDocument.proceedingId
     );
