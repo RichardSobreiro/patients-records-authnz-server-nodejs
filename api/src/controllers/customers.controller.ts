@@ -29,8 +29,9 @@ export default (): { [key: string]: Middleware } => ({
   },
   updateCustomer: async (ctx) => {
     try {
+      const userEmail = ctx.state.session.sub as string;
       const requestBody = ctx.request.body as UpdateCustomerRequest;
-      const responseBody = await UpdateCustomer(requestBody);
+      const responseBody = await UpdateCustomer(userEmail, requestBody);
       ctx.status = 200;
       ctx.message = "OK";
       ctx.response.body = JSON.stringify(responseBody);

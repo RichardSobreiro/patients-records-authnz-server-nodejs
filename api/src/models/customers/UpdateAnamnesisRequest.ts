@@ -1,10 +1,9 @@
 /** @format */
 
-export class CreateAnamneseResponse {
+export class UpdateAnamnesisRequest {
   constructor(
     public anamneseId: string,
     public customerId: string,
-    public creationDate: Date,
     public date: Date,
     public type: string[],
     public birthDate: Date,

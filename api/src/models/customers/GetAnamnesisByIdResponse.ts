@@ -1,6 +1,6 @@
 /** @format */
 
-export class CreateAnamneseResponse {
+export class GetAnamnesisByIdResponse {
   constructor(
     public anamneseId: string,
     public customerId: string,

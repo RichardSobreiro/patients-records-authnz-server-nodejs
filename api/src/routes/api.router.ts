@@ -5,6 +5,7 @@ import multer from "@koa/multer";
 import customersController from "../controllers/customers.controller";
 import proceedingsController from "../controllers/proceedings.controller";
 import { authenticate, authorize } from "../middlewares/auth.middleware";
+import anamnesisController from "../controllers/anamnesis.controller";
 
 const upload = multer();
 
@@ -15,6 +16,13 @@ export default () => {
     customersController();
 
   const {
+    createAnamnesis,
+    updateAnamnesis,
+    getAnamnesisById,
+    getAnamnesisList,
+  } = anamnesisController();
+
+  const {
     createProceeding,
     getProceedingById,
     getProceedings,
@@ -23,16 +31,32 @@ export default () => {
   } = proceedingsController();
 
   //------------------------------------------------------------------------------------------------------
-
   router.get("/pi", authenticate, authorize("api:read"), pi);
-
   router.post("/customers", authenticate, createCustomer);
-
   router.put("/customers/:customerId", authenticate, updateCustomer);
-
   router.get("/customers", authenticate, getCustomers);
-
   router.get("/customers/:customerId", authenticate, getCustomerById);
+  //------------------------------------------------------------------------------------------------------
+  router.post(
+    "/customers/:customerId/anamnesis",
+    authenticate,
+    createAnamnesis
+  );
+  router.get(
+    "/customers/:customerId/anamnesis/:anamnesisId",
+    authenticate,
+    getAnamnesisById
+  );
+  router.put(
+    "/customers/:customerId/anamnesis/:anamnesisId",
+    authenticate,
+    updateAnamnesis
+  );
+  router.get(
+    "/customers/:customerId/anamnesis",
+    authenticate,
+    getAnamnesisList
+  );
   //------------------------------------------------------------------------------------------------------
   router.post(
     "/customers/:customerId/proceedings",

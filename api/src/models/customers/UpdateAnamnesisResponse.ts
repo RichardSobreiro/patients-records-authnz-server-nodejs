@@ -1,11 +1,13 @@
 /** @format */
 
-export class GetAnamneseByIdResponse {
+export class UpdateAnamnesisResponse {
   constructor(
     public anamneseId: string,
     public customerId: string,
-    public creationDate: Date,
+    public date: Date,
+    public type: string[],
     public birthDate: Date,
+    public freeTypeText?: string,
     public gender?: string,
     public ethnicity?: string,
     public maritalStatus?: string,

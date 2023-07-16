@@ -15,9 +15,7 @@ import { UpdateCustomerRequest } from "../models/customers/UpdateCustomerRequest
 import { UpdateCustomerResponse } from "../models/customers/UpdateCustomerResponse";
 import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
 import { AnamneseRepository } from "../db/models/AnamneseRepository";
-import { CreateAnamneseResponse } from "../models/customers/CreateAnamneseResponse";
 import { GetCustomerByIdResponse } from "../models/customers/GetCustomerByIdResponse";
-import { GetAnamneseByIdResponse } from "../models/customers/GetAnamneseByIdResponse";
 
 export const CreateCustomer = async (
   userEmail: string,
@@ -36,34 +34,11 @@ export const CreateCustomer = async (
       email: request.email,
     });
 
-    const anamneseDocument = await AnamneseRepository.insertMany({
-      anamneseId: anamneseId,
-      customerId: customerId,
-      creationDate: new Date(),
-      birthDate: request.anamnese.birthDate,
-      gender: request.anamnese.gender,
-      ethnicity: request.anamnese.ethnicity,
-      maritalStatus: request.anamnese.maritalStatus,
-      employmentStatus: request.anamnese.employmentStatus,
-      comments: request.anamnese.comments,
-    });
-
     const createCustomerResponse = new CreateCustomerResponse(
       result[0].customerId,
       result[0].customerName,
       result[0].phoneNumber,
       result[0].creationDate,
-      new CreateAnamneseResponse(
-        anamneseId,
-        anamneseDocument[0].customerId,
-        anamneseDocument[0].creationDate,
-        anamneseDocument[0].birthDate,
-        anamneseDocument[0].gender,
-        anamneseDocument[0].ethnicity,
-        anamneseDocument[0].maritalStatus,
-        anamneseDocument[0].employmentStatus,
-        anamneseDocument[0].comments
-      ),
       result[0].email
     );
 
@@ -76,26 +51,24 @@ export const CreateCustomer = async (
 };
 
 export const UpdateCustomer = async (
+  userEmail: string,
   request: UpdateCustomerRequest
 ): Promise<UpdateCustomerResponse> => {
   const result = await CustomersRepository.findOneAndUpdate(
-    { userId: request.userId, customerId: request.customerId },
+    { userId: userEmail, customerId: request.customerId },
     {
       customerName: request.customerName,
       phoneNumber: request.phoneNumber,
-      birthDate: request.birthDate,
       email: request.email,
     }
   );
 
   return new UpdateCustomerResponse(
-    result!.userId,
     result!.customerId,
-    result!.customerName,
-    result!.phoneNumber,
-    result!.birthDate,
+    request.customerName,
+    request.phoneNumber,
     result!.creationDate,
-    result!.email
+    request!.email
   );
 };
 
@@ -299,29 +272,6 @@ export const GetCustomerById = async (
   customerId: string
 ): Promise<GetCustomerByIdResponse | undefined> => {
   let customerResponse: GetCustomerByIdResponse | undefined = undefined;
-  let anamnesesResponse: GetAnamneseByIdResponse[] | undefined = undefined;
-
-  const anamnesesDocument = await AnamneseRepository.find({
-    customerId: customerId,
-  });
-
-  if (anamnesesDocument && anamnesesDocument.length > 0) {
-    anamnesesResponse = [];
-    anamnesesDocument.forEach((document) => {
-      const anamnese = new GetAnamneseByIdResponse(
-        document.anamneseId,
-        document.customerId,
-        document.creationDate,
-        document.birthDate,
-        document.gender,
-        document.ethnicity,
-        document.maritalStatus,
-        document.employmentStatus,
-        document.comments
-      );
-      anamnesesResponse?.push(anamnese);
-    });
-  }
 
   const customerDocument = await CustomersRepository.findOne({
     userId: userId,
@@ -334,7 +284,6 @@ export const GetCustomerById = async (
     customerDocument!.customerName,
     customerDocument!.phoneNumber,
     customerDocument!.creationDate,
-    anamnesesResponse,
     customerDocument!.email
   );
 

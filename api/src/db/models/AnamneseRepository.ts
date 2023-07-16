@@ -6,7 +6,10 @@ interface Anamnese {
   anamneseId: string;
   customerId: string;
   creationDate: Date;
+  date: Date;
+  type: string[];
   birthDate: Date;
+  freeTypeText?: string;
   gender?: string;
   ethnicity?: string;
   maritalStatus?: string;
@@ -30,9 +33,21 @@ const AnamneseSchema = new Schema({
     type: Date,
     required: true,
   },
+  date: {
+    type: Date,
+    required: true,
+  },
+  type: {
+    type: [String],
+    required: true,
+  },
   birthDate: {
     type: Date,
     required: true,
+  },
+  freeTypeText: {
+    type: String,
+    required: false,
   },
   gender: {
     type: String,
