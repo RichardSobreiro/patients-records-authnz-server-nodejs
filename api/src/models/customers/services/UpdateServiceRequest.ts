@@ -1,9 +1,10 @@
 /** @format */
 
-export class UpdateProceedingRequest {
+export class UpdateServiceRequest {
   constructor(
     public date: Date,
-    public proceedingTypeDescription: string,
+    public serviceTypeId: string,
+    public serviceTypeDescription: string,
     public notes: string,
     public beforePhotos?: any,
     public afterPhotos?: any,

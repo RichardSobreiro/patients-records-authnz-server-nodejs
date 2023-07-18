@@ -6,6 +6,7 @@ import customersController from "../controllers/customers.controller";
 import proceedingsController from "../controllers/proceedings.controller";
 import { authenticate, authorize } from "../middlewares/auth.middleware";
 import anamnesisController from "../controllers/anamnesis.controller";
+import serviceTypesController from "../controllers/service-types.controller";
 
 const upload = multer();
 
@@ -22,6 +23,9 @@ export default () => {
     getAnamnesisList,
   } = anamnesisController();
 
+  const { createServiceType, getServiceTypeList, updateServiceType } =
+    serviceTypesController();
+
   const {
     createProceeding,
     getProceedingById,
@@ -37,6 +41,7 @@ export default () => {
   router.get("/customers", authenticate, getCustomers);
   router.get("/customers/:customerId", authenticate, getCustomerById);
   //------------------------------------------------------------------------------------------------------
+  // ANAMNESIS
   router.post(
     "/customers/:customerId/anamnesis",
     authenticate,
@@ -58,6 +63,15 @@ export default () => {
     getAnamnesisList
   );
   //------------------------------------------------------------------------------------------------------
+  // Service Types
+  router.post("/customers/services/types", authenticate, createServiceType);
+  router.get("/customers/services/types", authenticate, getServiceTypeList);
+  router.put(
+    "/customers/services/types/:serviceTypeId",
+    authenticate,
+    updateServiceType
+  );
+  //------------------------------------------------------------------------------------------------------
   router.post(
     "/customers/:customerId/proceedings",
     authenticate,
@@ -66,7 +80,7 @@ export default () => {
         name: "date",
       },
       {
-        name: "proceedingTypeDescription",
+        name: "serviceTypeDescription",
       },
       {
         name: "notes",
@@ -84,14 +98,14 @@ export default () => {
   );
 
   router.put(
-    "/customers/:customerId/proceedings/:proceedingId",
+    "/customers/:customerId/proceedings/:serviceId",
     authenticate,
     upload.fields([
       {
         name: "date",
       },
       {
-        name: "proceedingTypeDescription",
+        name: "serviceTypeDescription",
       },
       {
         name: "notes",
@@ -109,7 +123,7 @@ export default () => {
   );
 
   router.get(
-    "/customers/:customerId/proceedings/:proceedingId",
+    "/customers/:customerId/proceedings/:serviceId",
     authenticate,
     getProceedingById
   );
@@ -118,12 +132,6 @@ export default () => {
     "/customers/:customerId/proceedings",
     authenticate,
     getProceedings
-  );
-
-  router.get(
-    "/professionals/:email/proceedings/types",
-    authenticate,
-    getProceedingsTypesByEmail
   );
 
   return router;

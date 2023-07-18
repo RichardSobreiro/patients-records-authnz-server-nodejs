@@ -1,64 +1,60 @@
 /** @format */
-import { ProceedingTypes } from "../db/models/ProceedingTypes";
+import { ServiceTypeRepository } from "../db/models/ServiceTypesRepository";
 import { Proceedings } from "../db/models/Proceedings";
 import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
 import { CustomersRepository } from "../db/models/CustomersRepository";
 import {
-  GetProceedingResponse,
-  GetProceedingPhotosResponse,
+  GetServiceResponse,
+  GetServicePhotosResponse,
   GetProceedingsResponse,
-} from "../models/customers/proceedings/GetProceedingResponse";
+} from "../models/customers/services/GetServiceResponse";
 
 import { createBlobSas } from "./azure/azure.storage.account";
-import {
-  GetProceedingTypeResponse,
-  GetProceedingTypesResponse,
-} from "../models/customers/proceedings/GetProceedingTypesResponse";
 
 export const getProceedingById = async (
   customerId: string,
-  proceedingId: string
-): Promise<GetProceedingResponse> => {
+  serviceId: string
+): Promise<GetServiceResponse> => {
   const customer = await CustomersRepository.findOne({
     customerId: customerId,
   });
 
-  const proceeding = await Proceedings.findOne({ proceedingId: proceedingId });
+  const proceeding = await Proceedings.findOne({ serviceId: serviceId });
 
-  const proceedingType = await ProceedingTypes.findOne({
+  const proceedingType = await ServiceTypeRepository.findOne({
     proceedingTypeId: proceeding?.proceedingTypeId,
   });
 
   const proceedingPhotos = await ProceedingPhotos.find({
-    proceedingId: proceedingId,
+    serviceId: serviceId,
   });
 
-  const response = new GetProceedingResponse(
-    proceeding?.proceedingId!,
+  const response = new GetServiceResponse(
+    proceeding?.serviceId!,
     proceeding!.date,
-    proceedingType!.proceedingTypeDescription,
+    proceedingType!.serviceTypeDescription,
     proceeding!.notes
   );
 
   const thresholdDateTime = new Date();
   thresholdDateTime.setHours(thresholdDateTime.getHours() - 1);
   const beforePhotos = proceedingPhotos.filter((proceedingPhoto) => {
-    return proceedingPhoto.proceedingPhotoType === "beforePhotos";
+    return proceedingPhoto.servicePhotoType === "beforePhotos";
   });
   response.beforePhotos = await createPhotoResponse(
     beforePhotos,
     customer?.userId!,
     thresholdDateTime,
-    proceedingId
+    serviceId
   );
   const afterPhotos = proceedingPhotos.filter((proceedingPhoto) => {
-    return proceedingPhoto.proceedingPhotoType === "afterPhotos";
+    return proceedingPhoto.servicePhotoType === "afterPhotos";
   });
   response.afterPhotos = await createPhotoResponse(
     afterPhotos,
     customer?.userId!,
     thresholdDateTime,
-    proceedingId
+    serviceId
   );
 
   return response;
@@ -109,39 +105,39 @@ export const getProceedings = async (
 
   response.proceedings = [];
   for (const proceedingDocument of proceedingDocuments) {
-    const proceedingType = await ProceedingTypes.findOne({
+    const proceedingType = await ServiceTypeRepository.findOne({
       proceedingTypeId: proceedingDocument.proceedingTypeId,
     });
 
-    const proceeding = new GetProceedingResponse(
-      proceedingDocument.proceedingId!,
+    const proceeding = new GetServiceResponse(
+      proceedingDocument.serviceId!,
       proceedingDocument.date,
-      proceedingType!.proceedingTypeDescription,
+      proceedingType!.serviceTypeDescription,
       proceedingDocument.notes
     );
 
     const thresholdDateTime = new Date();
     thresholdDateTime.setHours(thresholdDateTime.getHours() - 1);
     const proceedingPhotos = await ProceedingPhotos.find({
-      proceedingId: proceedingDocument.proceedingId,
+      serviceId: proceedingDocument.serviceId,
     });
     const beforePhotos = proceedingPhotos.filter((proceedingPhoto) => {
-      return proceedingPhoto.proceedingPhotoType === "beforePhotos";
+      return proceedingPhoto.servicePhotoType === "beforePhotos";
     });
     proceeding.beforePhotos = await createPhotoResponse(
       beforePhotos,
       customer?.userId!,
       thresholdDateTime,
-      proceedingDocument.proceedingId
+      proceedingDocument.serviceId
     );
     const afterPhotos = proceedingPhotos.filter((proceedingPhoto) => {
-      return proceedingPhoto.proceedingPhotoType === "afterPhotos";
+      return proceedingPhoto.servicePhotoType === "afterPhotos";
     });
     proceeding.afterPhotos = await createPhotoResponse(
       afterPhotos,
       customer?.userId!,
       thresholdDateTime,
-      proceedingDocument.proceedingId
+      proceedingDocument.serviceId
     );
     response.proceedings?.push(proceeding);
   }
@@ -153,9 +149,9 @@ const createPhotoResponse = async (
   photoDocuments: any[],
   userId: string,
   thresholdDateTime: Date,
-  proceedingId: string
-): Promise<GetProceedingPhotosResponse[]> => {
-  const photosResponse: GetProceedingPhotosResponse[] = [];
+  serviceId: string
+): Promise<GetServicePhotosResponse[]> => {
+  const photosResponse: GetServicePhotosResponse[] = [];
   for (const photoDocument of photoDocuments) {
     if (photoDocument.sasTokenExpiresOn < thresholdDateTime) {
       const sasToken = await createBlobSas(userId, photoDocument.filename);
@@ -164,10 +160,10 @@ const createPhotoResponse = async (
       photoDocument.save();
     }
 
-    const photoResponse = new GetProceedingPhotosResponse(
-      proceedingId,
-      photoDocument.proceedingPhotoId,
-      photoDocument.proceedingPhotoType,
+    const photoResponse = new GetServicePhotosResponse(
+      serviceId,
+      photoDocument.servicePhotoId,
+      photoDocument.servicePhotoType,
       photoDocument.creationDate,
       `${photoDocument.baseUrl}?${photoDocument.sasToken}`,
       photoDocument.sasTokenExpiresOn
@@ -176,28 +172,4 @@ const createPhotoResponse = async (
     photosResponse.push(photoResponse);
   }
   return photosResponse;
-};
-
-export const getProceedingsTypesByEmail = async (
-  email: string
-): Promise<GetProceedingTypesResponse> => {
-  const proceedingTypeDocuments = await ProceedingTypes.find({
-    userId: email,
-  });
-
-  const response: GetProceedingTypesResponse = new GetProceedingTypesResponse(
-    email
-  );
-
-  response.proceedingsTypes = [];
-  for (const proceedingTypeDocument of proceedingTypeDocuments) {
-    const proceedingType = new GetProceedingTypeResponse(
-      proceedingTypeDocument.proceedingTypeId,
-      proceedingTypeDocument.proceedingTypeDescription,
-      proceedingTypeDocument.notes
-    );
-    response.proceedingsTypes?.push(proceedingType);
-  }
-
-  return response;
 };

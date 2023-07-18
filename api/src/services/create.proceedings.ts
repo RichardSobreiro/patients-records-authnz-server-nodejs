@@ -1,13 +1,12 @@
 /** @format */
-import { ProceedingTypes, ProceedingType } from "../db/models/ProceedingTypes";
 import { Proceedings } from "../db/models/Proceedings";
 import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
 import { CustomersRepository } from "../db/models/CustomersRepository";
-import { CreateProceedingRequest } from "../models/customers/proceedings/CreateProceedingRequest";
+import { CreateServiceRequest } from "../models/customers/services/CreateServiceRequest";
 import {
-  CreateProceedingPhotosResponse,
-  CreateProceedingResponse,
-} from "../models/customers/proceedings/CreateProceedingResponse";
+  CreateServicePhotosResponse,
+  CreateServiceResponse,
+} from "../models/customers/services/CreateServiceResponse";
 import {
   createBlobClient,
   createContainerClient,
@@ -21,32 +20,27 @@ import { ContainerClient } from "@azure/storage-blob";
 export const createProceeding = async (
   userId: string,
   customerId: string,
-  request: CreateProceedingRequest,
+  request: CreateServiceRequest,
   files: any
-): Promise<CreateProceedingResponse> => {
+): Promise<CreateServiceResponse> => {
   const customer = await CustomersRepository.findOne({
     customerId: customerId,
   });
 
-  const proceedingType = await createProceedingTypeIfNotExists(
-    customer?.userId!,
-    request.proceedingTypeDescription
-  );
-
   const proceeding = await Proceedings.create({
     userId: userId,
-    proceedingId: uuidv4(),
+    serviceId: uuidv4(),
     creationDate: new Date(),
     customerId: customerId,
     date: new Date(request.date),
-    proceedingTypeId: proceedingType.proceedingTypeId,
+    proceedingTypeId: request.serviceTypeId,
     notes: request.notes,
   });
 
-  const response = new CreateProceedingResponse(
-    proceeding.proceedingId,
+  const response = new CreateServiceResponse(
+    proceeding.serviceId,
     proceeding.date,
-    proceedingType.proceedingTypeDescription,
+    request.serviceTypeDescription,
     proceeding.notes
   );
 
@@ -59,7 +53,7 @@ export const createProceeding = async (
     response.beforePhotos = await processBeforePhotos(
       beforePhotos,
       containerClient,
-      proceeding.proceedingId,
+      proceeding.serviceId,
       customer?.userId!
     );
   }
@@ -69,7 +63,7 @@ export const createProceeding = async (
     response.afterPhotos = await processAfterPhotos(
       afterPhotos,
       containerClient,
-      proceeding.proceedingId,
+      proceeding.serviceId,
       customer?.userId!
     );
   }
@@ -80,16 +74,16 @@ export const createProceeding = async (
 const processBeforePhotos = async (
   beforePhotos: any[],
   containerClient: ContainerClient,
-  proceedingId: string,
+  serviceId: string,
   username: string
-): Promise<CreateProceedingPhotosResponse[] | null> => {
+): Promise<CreateServicePhotosResponse[] | null> => {
   if (beforePhotos && beforePhotos.length > 0) {
-    const beforePhotosResponse: CreateProceedingPhotosResponse[] =
+    const beforePhotosResponse: CreateServicePhotosResponse[] =
       await processPhotos(
         beforePhotos,
         "beforePhotos",
         containerClient,
-        proceedingId,
+        serviceId,
         username
       );
     return beforePhotosResponse;
@@ -101,16 +95,16 @@ const processBeforePhotos = async (
 const processAfterPhotos = async (
   afterPhotos: any[],
   containerClient: ContainerClient,
-  proceedingId: string,
+  serviceId: string,
   username: string
-): Promise<CreateProceedingPhotosResponse[] | null> => {
+): Promise<CreateServicePhotosResponse[] | null> => {
   if (afterPhotos && afterPhotos.length > 0) {
-    const afterPhotosResponse: CreateProceedingPhotosResponse[] =
+    const afterPhotosResponse: CreateServicePhotosResponse[] =
       await processPhotos(
         afterPhotos,
         "afterPhotos",
         containerClient,
-        proceedingId,
+        serviceId,
         username
       );
     return afterPhotosResponse;
@@ -123,17 +117,17 @@ const processPhotos = async (
   photosToBeCreated: any[],
   photoType: string,
   containerClient: ContainerClient,
-  proceedingId: string,
+  serviceId: string,
   username: string
-): Promise<CreateProceedingPhotosResponse[]> => {
-  const photosResponse: CreateProceedingPhotosResponse[] = [];
+): Promise<CreateServicePhotosResponse[]> => {
+  const photosResponse: CreateServicePhotosResponse[] = [];
 
   for (const photoToBeCreated of photosToBeCreated) {
     const imageType = photoToBeCreated.mimetype.slice(
       photoToBeCreated.mimetype.indexOf("/") + 1
     );
-    const proceedingPhotoId = uuidv4();
-    const filename = `${proceedingPhotoId}.${imageType}`;
+    const servicePhotoId = uuidv4();
+    const filename = `${servicePhotoId}.${imageType}`;
     const baseUrl = getBaseBlobURL(username, filename);
 
     const blobClient = await createBlobClient(containerClient, filename);
@@ -150,10 +144,10 @@ const processPhotos = async (
     const sasToken = await createBlobSas(username, filename);
 
     const proceedingPhotoCreated = await ProceedingPhotos.create({
-      proceedingId: proceedingId,
+      serviceId: serviceId,
       creationDate: new Date(),
-      proceedingPhotoId: proceedingPhotoId,
-      proceedingPhotoType: photoType,
+      servicePhotoId: servicePhotoId,
+      servicePhotoType: photoType,
       mimeType: photoToBeCreated.mimetype,
       imageType: imageType,
       contentEncoding: photoToBeCreated.encoding,
@@ -163,10 +157,10 @@ const processPhotos = async (
       sasTokenExpiresOn: sasToken.expiresOn,
     });
 
-    const photoResponse = new CreateProceedingPhotosResponse(
-      proceedingId,
-      proceedingPhotoCreated.proceedingPhotoId,
-      proceedingPhotoCreated.proceedingPhotoType,
+    const photoResponse = new CreateServicePhotosResponse(
+      serviceId,
+      proceedingPhotoCreated.servicePhotoId,
+      proceedingPhotoCreated.servicePhotoType,
       proceedingPhotoCreated.creationDate,
       `${baseUrl}?${proceedingPhotoCreated.sasToken}`,
       proceedingPhotoCreated.sasTokenExpiresOn
@@ -176,28 +170,4 @@ const processPhotos = async (
   }
 
   return photosResponse;
-};
-
-const createProceedingTypeIfNotExists = async (
-  userId: string,
-  proceedingTypeDescription: string
-): Promise<ProceedingType> => {
-  let proceedingType: ProceedingType | null = await ProceedingTypes.findOne({
-    userId: userId,
-    proceedingTypeDescription: {
-      $regex: proceedingTypeDescription,
-      $options: "i",
-    },
-  });
-
-  if (!proceedingType) {
-    proceedingType = await ProceedingTypes.create({
-      userId: userId,
-      creationDate: new Date(),
-      proceedingTypeId: uuidv4(),
-      proceedingTypeDescription: proceedingTypeDescription,
-      notes: null,
-    });
-  }
-  return proceedingType;
 };

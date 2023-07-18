@@ -4,7 +4,7 @@ import mongoose, { Schema } from "mongoose";
 
 interface Proceeding {
   userId: string;
-  proceedingId: string;
+  serviceId: string;
   creationDate: Date;
   customerId: string;
   date: Date;
@@ -18,7 +18,7 @@ const ProceedingsSchema = new Schema({
     required: true,
     index: true,
   },
-  proceedingId: {
+  serviceId: {
     type: String,
     required: true,
     unique: true,

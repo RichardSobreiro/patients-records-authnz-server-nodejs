@@ -84,13 +84,13 @@ export const UpdateCustomerMostRecentProceedingProperties = async (
     .exec();
 
   if (proceedingDocuments.length === 1) {
-    const mostRecentProceedingId: string = proceedingDocuments[0].proceedingId;
+    const mostRecentProceedingId: string = proceedingDocuments[0].serviceId;
     const mostRecentProceedingDate: Date = proceedingDocuments[0].date;
     let mostRecentProceedingAfterPhotoUrl: string | null = null;
 
     const proceedingAfterPhotos = await ProceedingPhotos.find({
-      proceedingId: mostRecentProceedingId,
-      proceedingPhotoType: "afterPhotos",
+      serviceId: mostRecentProceedingId,
+      servicePhotoType: "afterPhotos",
     });
 
     if (proceedingAfterPhotos.length > 0) {

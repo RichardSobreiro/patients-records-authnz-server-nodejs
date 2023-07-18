@@ -3,10 +3,10 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface ProceedingPhoto {
-  proceedingId: string;
+  serviceId: string;
   creationDate: Date;
-  proceedingPhotoId: string;
-  proceedingPhotoType: string;
+  servicePhotoId: string;
+  servicePhotoType: string;
   mimeType: string;
   imageType: string;
   contentEncoding: string;
@@ -17,7 +17,7 @@ export interface ProceedingPhoto {
 }
 
 const ProceedingPhotosSchema = new Schema({
-  proceedingId: {
+  serviceId: {
     type: String,
     required: true,
     index: true,
@@ -26,13 +26,13 @@ const ProceedingPhotosSchema = new Schema({
     type: Date,
     required: true,
   },
-  proceedingPhotoId: {
+  servicePhotoId: {
     type: String,
     required: true,
     unique: true,
     index: true,
   },
-  proceedingPhotoType: {
+  servicePhotoType: {
     type: String,
     required: true,
   },

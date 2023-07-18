@@ -1,13 +1,13 @@
 /** @format */
-import { ProceedingTypes, ProceedingType } from "../db/models/ProceedingTypes";
+import { ServiceTypeRepository } from "../db/models/ServiceTypesRepository";
 import { Proceedings } from "../db/models/Proceedings";
 import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
 import { CustomersRepository } from "../db/models/CustomersRepository";
-import { UpdateProceedingRequest } from "../models/customers/proceedings/UpdateProceedingRequest";
+import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
 import {
-  UpdateProceedingPhotosResponse,
-  UpdateProceedingResponse,
-} from "../models/customers/proceedings/UpdateProceedingResponse";
+  UpdateServicePhotosResponse,
+  UpdateServiceResponse,
+} from "../models/customers/services/UpdateServiceResponse";
 import {
   createBlobClient,
   createContainerClient,
@@ -21,36 +21,31 @@ import { ContainerClient } from "@azure/storage-blob";
 export const updateProceeding = async (
   userId: string,
   customerId: string,
-  proceedingId: string,
-  request: UpdateProceedingRequest,
+  serviceId: string,
+  request: UpdateServiceRequest,
   files: any
-): Promise<UpdateProceedingResponse> => {
+): Promise<UpdateServiceResponse> => {
   const customer = await CustomersRepository.findOne({
     customerId: customerId,
   });
 
-  const proceedingType = await createProceedingTypeIfNotExists(
-    customer?.userId!,
-    request.proceedingTypeDescription
-  );
-
   const proceeding = await Proceedings.findOneAndUpdate(
-    { userId: userId, proceedingId: proceedingId },
+    { userId: userId, serviceId: serviceId },
     {
       userId: userId,
-      proceedingId: proceedingId,
+      serviceId: serviceId,
       creationDate: new Date(),
       customerId: customerId,
       date: new Date(request.date),
-      proceedingTypeId: proceedingType.proceedingTypeId,
+      proceedingTypeId: request.serviceTypeId,
       notes: request.notes,
     }
   );
 
-  const response = new UpdateProceedingResponse(
-    proceedingId,
+  const response = new UpdateServiceResponse(
+    serviceId,
     request!.date,
-    proceedingType.proceedingTypeDescription,
+    request.serviceTypeId,
     request!.notes
   );
 
@@ -61,15 +56,15 @@ export const updateProceeding = async (
 
   if (request.beforePhotosCreateNew) {
     const deletedProceedingsPhotos = await ProceedingPhotos.find({
-      proceedingId: proceedingId,
-      proceedingPhotoType: "beforePhotos",
+      serviceId: serviceId,
+      servicePhotoType: "beforePhotos",
     });
     for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
       await containerClient.deleteBlob(deletedProceedingPhoto.filename);
     }
     await ProceedingPhotos.deleteMany({
-      proceedingId: proceedingId,
-      proceedingPhotoType: "beforePhotos",
+      serviceId: serviceId,
+      servicePhotoType: "beforePhotos",
     });
   }
 
@@ -77,22 +72,22 @@ export const updateProceeding = async (
     response.beforePhotos = await processBeforePhotos(
       beforePhotos,
       containerClient,
-      proceedingId,
+      serviceId,
       customer?.userId!
     );
   }
 
   if (request.afterPhotosCreateNew) {
     const deletedProceedingsPhotos = await ProceedingPhotos.find({
-      proceedingId: proceedingId,
-      proceedingPhotoType: "afterPhotos",
+      serviceId: serviceId,
+      servicePhotoType: "afterPhotos",
     });
     for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
       await containerClient.deleteBlob(deletedProceedingPhoto.filename);
     }
     await ProceedingPhotos.deleteMany({
-      proceedingId: proceedingId,
-      proceedingPhotoType: "afterPhotos",
+      serviceId: serviceId,
+      servicePhotoType: "afterPhotos",
     });
   }
 
@@ -100,7 +95,7 @@ export const updateProceeding = async (
     response.afterPhotos = await processAfterPhotos(
       afterPhotos,
       containerClient,
-      proceedingId,
+      serviceId,
       customer?.userId!
     );
   }
@@ -111,16 +106,16 @@ export const updateProceeding = async (
 const processBeforePhotos = async (
   beforePhotos: any[],
   containerClient: ContainerClient,
-  proceedingId: string,
+  serviceId: string,
   username: string
-): Promise<UpdateProceedingPhotosResponse[] | null> => {
+): Promise<UpdateServicePhotosResponse[] | null> => {
   if (beforePhotos && beforePhotos.length > 0) {
-    const beforePhotosResponse: UpdateProceedingPhotosResponse[] =
+    const beforePhotosResponse: UpdateServicePhotosResponse[] =
       await processPhotos(
         beforePhotos,
         "beforePhotos",
         containerClient,
-        proceedingId,
+        serviceId,
         username
       );
     return beforePhotosResponse;
@@ -132,16 +127,16 @@ const processBeforePhotos = async (
 const processAfterPhotos = async (
   afterPhotos: any[],
   containerClient: ContainerClient,
-  proceedingId: string,
+  serviceId: string,
   username: string
-): Promise<UpdateProceedingPhotosResponse[] | null> => {
+): Promise<UpdateServicePhotosResponse[] | null> => {
   if (afterPhotos && afterPhotos.length > 0) {
-    const afterPhotosResponse: UpdateProceedingPhotosResponse[] =
+    const afterPhotosResponse: UpdateServicePhotosResponse[] =
       await processPhotos(
         afterPhotos,
         "afterPhotos",
         containerClient,
-        proceedingId,
+        serviceId,
         username
       );
     return afterPhotosResponse;
@@ -154,17 +149,17 @@ const processPhotos = async (
   photosToBeCreated: any[],
   photoType: string,
   containerClient: ContainerClient,
-  proceedingId: string,
+  serviceId: string,
   username: string
-): Promise<UpdateProceedingPhotosResponse[]> => {
-  const photosResponse: UpdateProceedingPhotosResponse[] = [];
+): Promise<UpdateServicePhotosResponse[]> => {
+  const photosResponse: UpdateServicePhotosResponse[] = [];
 
   for (const photoToBeCreated of photosToBeCreated) {
     const imageType = photoToBeCreated.mimetype.slice(
       photoToBeCreated.mimetype.indexOf("/") + 1
     );
-    const proceedingPhotoId = uuidv4();
-    const filename = `${proceedingPhotoId}.${imageType}`;
+    const servicePhotoId = uuidv4();
+    const filename = `${servicePhotoId}.${imageType}`;
     const baseUrl = getBaseBlobURL(username, filename);
 
     const blobClient = await createBlobClient(containerClient, filename);
@@ -181,10 +176,10 @@ const processPhotos = async (
     const sasToken = await createBlobSas(username, filename);
 
     const proceedingPhotoCreated = await ProceedingPhotos.create({
-      proceedingId: proceedingId,
+      serviceId: serviceId,
       creationDate: new Date(),
-      proceedingPhotoId: proceedingPhotoId,
-      proceedingPhotoType: photoType,
+      servicePhotoId: servicePhotoId,
+      servicePhotoType: photoType,
       mimeType: photoToBeCreated.mimetype,
       imageType: imageType,
       contentEncoding: photoToBeCreated.encoding,
@@ -194,10 +189,10 @@ const processPhotos = async (
       sasTokenExpiresOn: sasToken.expiresOn,
     });
 
-    const photoResponse = new UpdateProceedingPhotosResponse(
-      proceedingId,
-      proceedingPhotoCreated.proceedingPhotoId,
-      proceedingPhotoCreated.proceedingPhotoType,
+    const photoResponse = new UpdateServicePhotosResponse(
+      serviceId,
+      proceedingPhotoCreated.servicePhotoId,
+      proceedingPhotoCreated.servicePhotoType,
       proceedingPhotoCreated.creationDate,
       `${baseUrl}?${proceedingPhotoCreated.sasToken}`,
       proceedingPhotoCreated.sasTokenExpiresOn
@@ -207,28 +202,4 @@ const processPhotos = async (
   }
 
   return photosResponse;
-};
-
-const createProceedingTypeIfNotExists = async (
-  userId: string,
-  proceedingTypeDescription: string
-): Promise<ProceedingType> => {
-  let proceedingType: ProceedingType | null = await ProceedingTypes.findOne({
-    userId: userId,
-    proceedingTypeDescription: {
-      $regex: proceedingTypeDescription,
-      $options: "i",
-    },
-  });
-
-  if (!proceedingType) {
-    proceedingType = await ProceedingTypes.create({
-      userId: userId,
-      creationDate: new Date(),
-      proceedingTypeId: uuidv4(),
-      proceedingTypeDescription: proceedingTypeDescription,
-      notes: null,
-    });
-  }
-  return proceedingType;
 };

@@ -1,24 +1,24 @@
 /** @format */
 
-export class GetProceedingPhotosResponse {
+export class GetServicePhotosResponse {
   constructor(
-    public proceedingId: string,
-    public proceedingPhotoId: string,
-    public proceedingPhotoType: string,
+    public serviceId: string,
+    public servicePhotoId: string,
+    public servicePhotoType: string,
     public creationDate: Date,
     public url: string,
     public urlExpiresOn: Date
   ) {}
 }
 
-export class GetProceedingResponse {
+export class GetServiceResponse {
   constructor(
-    public proceedingId: string,
+    public serviceId: string,
     public date: Date,
-    public proceedingTypeDescription: string,
+    public serviceTypeDescription: string,
     public notes?: string,
-    public beforePhotos?: GetProceedingPhotosResponse[] | null,
-    public afterPhotos?: GetProceedingPhotosResponse[] | null
+    public beforePhotos?: GetServicePhotosResponse[] | null,
+    public afterPhotos?: GetServicePhotosResponse[] | null
   ) {}
 }
 
@@ -32,6 +32,6 @@ export class GetProceedingsResponse {
     public proceedingsCount: number,
     public previous?: ListPage,
     public next?: ListPage,
-    public proceedings?: GetProceedingResponse[] | null
+    public proceedings?: GetServiceResponse[] | null
   ) {}
 }
