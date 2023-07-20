@@ -1,32 +1,32 @@
 /** @format */
 import { Middleware, Request } from "koa";
 import { CreateServiceRequest } from "../models/customers/services/CreateServiceRequest";
-import { createProceeding } from "../services/create.proceedings";
-import { getProceedingById, getProceedings } from "../services/get.proceedings";
-import { UpdateCustomerMostRecentProceedingProperties } from "../services/customers";
+import { createService } from "../services/create.service-service";
+import {
+  getServiceById,
+  getProceedings,
+} from "../services/get.services-service";
 import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
-import { updateProceeding } from "../services/update.proceedings";
+import { updateService } from "../services/update.proceedings-service";
 
 interface MulterRequest extends Request {
   files: any;
 }
 
 export default (): { [key: string]: Middleware } => ({
-  createProceeding: async (ctx) => {
+  createService: async (ctx) => {
     try {
       const files = (ctx.request as MulterRequest).files;
       const requestBody = ctx.request.body as CreateServiceRequest;
       const customerId = ctx.params.customerId;
       const userId = ctx.state.session.sub as string;
 
-      const responseBody = await createProceeding(
+      const responseBody = await createService(
         userId,
         customerId,
         requestBody,
         files
       );
-
-      await UpdateCustomerMostRecentProceedingProperties(userId, customerId);
 
       ctx.status = 201;
       ctx.message = "Created";
@@ -38,26 +38,15 @@ export default (): { [key: string]: Middleware } => ({
       ctx.response.body = { message: e.message, stackTrace: e.stack };
     }
   },
-  updateProceeding: async (ctx) => {
+  getServiceById: async (ctx) => {
     try {
-      const files = (ctx.request as MulterRequest).files;
-      const requestBody = ctx.request.body as UpdateServiceRequest;
       const customerId = ctx.params.customerId;
       const serviceId = ctx.params.serviceId;
-      const userId = ctx.state.session.sub as string;
 
-      const responseBody = await updateProceeding(
-        userId,
-        customerId,
-        serviceId,
-        requestBody,
-        files
-      );
-
-      await UpdateCustomerMostRecentProceedingProperties(userId, customerId);
+      const responseBody = await getServiceById(customerId, serviceId);
 
       ctx.status = 200;
-      ctx.message = "OK";
+      ctx.message = "Ok";
       ctx.response.body = JSON.stringify(responseBody);
     } catch (e: any) {
       console.log(e);
@@ -66,15 +55,24 @@ export default (): { [key: string]: Middleware } => ({
       ctx.response.body = { message: e.message, stackTrace: e.stack };
     }
   },
-  getProceedingById: async (ctx) => {
+  updateService: async (ctx) => {
     try {
+      const files = (ctx.request as MulterRequest).files;
+      const requestBody = ctx.request.body as UpdateServiceRequest;
       const customerId = ctx.params.customerId;
       const serviceId = ctx.params.serviceId;
+      const userId = ctx.state.session.sub as string;
 
-      const responseBody = await getProceedingById(customerId, serviceId);
+      const responseBody = await updateService(
+        userId,
+        customerId,
+        serviceId,
+        requestBody,
+        files
+      );
 
       ctx.status = 200;
-      ctx.message = "Ok";
+      ctx.message = "OK";
       ctx.response.body = JSON.stringify(responseBody);
     } catch (e: any) {
       console.log(e);

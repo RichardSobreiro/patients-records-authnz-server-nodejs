@@ -3,7 +3,7 @@
 import Router from "koa-router";
 import multer from "@koa/multer";
 import customersController from "../controllers/customers.controller";
-import proceedingsController from "../controllers/proceedings.controller";
+import servicesController from "../controllers/services.controller";
 import { authenticate, authorize } from "../middlewares/auth.middleware";
 import anamnesisController from "../controllers/anamnesis.controller";
 import serviceTypesController from "../controllers/service-types.controller";
@@ -27,12 +27,12 @@ export default () => {
     serviceTypesController();
 
   const {
-    createProceeding,
-    getProceedingById,
+    createService,
+    getServiceById,
     getProceedings,
     getProceedingsTypesByEmail,
-    updateProceeding,
-  } = proceedingsController();
+    updateService,
+  } = servicesController();
 
   //------------------------------------------------------------------------------------------------------
   router.get("/pi", authenticate, authorize("api:read"), pi);
@@ -73,7 +73,7 @@ export default () => {
   );
   //------------------------------------------------------------------------------------------------------
   router.post(
-    "/customers/:customerId/proceedings",
+    "/customers/:customerId/servicesList",
     authenticate,
     upload.fields([
       {
@@ -94,11 +94,11 @@ export default () => {
         maxCount: 5,
       },
     ]),
-    createProceeding
+    createService
   );
 
   router.put(
-    "/customers/:customerId/proceedings/:serviceId",
+    "/customers/:customerId/servicesList/:serviceId",
     authenticate,
     upload.fields([
       {
@@ -119,17 +119,17 @@ export default () => {
         maxCount: 5,
       },
     ]),
-    updateProceeding
+    updateService
   );
 
   router.get(
-    "/customers/:customerId/proceedings/:serviceId",
+    "/customers/:customerId/servicesList/:serviceId",
     authenticate,
-    getProceedingById
+    getServiceById
   );
 
   router.get(
-    "/customers/:customerId/proceedings",
+    "/customers/:customerId/servicesList",
     authenticate,
     getProceedings
   );

@@ -2,7 +2,7 @@
 
 import mongoose, { Schema } from "mongoose";
 
-export interface ProceedingPhoto {
+export interface ServicePhoto {
   serviceId: string;
   creationDate: Date;
   servicePhotoId: string;
@@ -16,7 +16,13 @@ export interface ProceedingPhoto {
   sasTokenExpiresOn: Date;
 }
 
-const ProceedingPhotosSchema = new Schema({
+const ServicePhotosSchema = new Schema({
+  servicePhotoId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+  },
   serviceId: {
     type: String,
     required: true,
@@ -25,12 +31,6 @@ const ProceedingPhotosSchema = new Schema({
   creationDate: {
     type: Date,
     required: true,
-  },
-  servicePhotoId: {
-    type: String,
-    required: true,
-    unique: true,
-    index: true,
   },
   servicePhotoType: {
     type: String,
@@ -66,7 +66,7 @@ const ProceedingPhotosSchema = new Schema({
   },
 });
 
-export const ProceedingPhotos = mongoose.model<ProceedingPhoto>(
-  "ProceedingPhotos",
-  ProceedingPhotosSchema
+export const ServicePhotosRepository = mongoose.model<ServicePhoto>(
+  "ServicePhotosRepository",
+  ServicePhotosSchema
 );

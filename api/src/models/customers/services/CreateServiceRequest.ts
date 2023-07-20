@@ -1,12 +1,14 @@
 /** @format */
 
+import { GetServiceTypeResponse } from "./service-types/GetServiceTypesResponse";
+
 export class CreateServiceRequest {
   constructor(
     public date: Date,
-    public serviceTypeId: string,
-    public serviceTypeDescription: string,
-    public notes: string,
+    public serviceTypes: GetServiceTypeResponse[],
+    public beforeNotes?: string,
     public beforePhotos?: any,
+    public afterNotes?: string,
     public afterPhotos?: any
   ) {}
 }

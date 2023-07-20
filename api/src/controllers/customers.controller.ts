@@ -6,7 +6,7 @@ import {
   GetCustomers,
   GetCustomerById,
   UpdateCustomer,
-} from "../services/customers";
+} from "../services/customers-service";
 import { CreateCustomerRequest } from "../models/customers/CreateCustomerRequest";
 import { UpdateCustomerRequest } from "../models/customers/UpdateCustomerRequest";
 
@@ -44,7 +44,7 @@ export default (): { [key: string]: Middleware } => ({
       const customerName = ctx.query.customerName as string;
       const startDate = ctx.query.startDate as unknown as Date;
       const endDate = ctx.query.endDate as unknown as Date;
-      const proceedingTypeId = ctx.query.proceedingTypeId as string;
+      const serviceTypeId = ctx.query.serviceTypeId as string;
       const pageNumber = ctx.query.pageNumber as string;
       const limit = ctx.query.limit as string;
 
@@ -56,7 +56,7 @@ export default (): { [key: string]: Middleware } => ({
         customerName,
         startDate,
         endDate,
-        proceedingTypeId,
+        serviceTypeId,
         limit
       );
 

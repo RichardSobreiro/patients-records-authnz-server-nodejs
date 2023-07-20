@@ -10,10 +10,9 @@ import {
 } from "../models/customers/GetCustomersResponse";
 
 import { v4 as uuidv4 } from "uuid";
-import { Proceedings } from "../db/models/Proceedings";
+import { ServicesRepository } from "../db/models/ServicesRepository";
 import { UpdateCustomerRequest } from "../models/customers/UpdateCustomerRequest";
 import { UpdateCustomerResponse } from "../models/customers/UpdateCustomerResponse";
-import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
 import { AnamneseRepository } from "../db/models/AnamneseRepository";
 import { GetCustomerByIdResponse } from "../models/customers/GetCustomerByIdResponse";
 
@@ -72,48 +71,10 @@ export const UpdateCustomer = async (
   );
 };
 
-export const UpdateCustomerMostRecentProceedingProperties = async (
-  userId: string,
-  customerId: string
-): Promise<void> => {
-  const proceedingDocuments = await Proceedings.find({
-    customerId: customerId,
-  })
-    .sort({ date: -1 })
-    .limit(1)
-    .exec();
-
-  if (proceedingDocuments.length === 1) {
-    const mostRecentProceedingId: string = proceedingDocuments[0].serviceId;
-    const mostRecentProceedingDate: Date = proceedingDocuments[0].date;
-    let mostRecentProceedingAfterPhotoUrl: string | null = null;
-
-    const proceedingAfterPhotos = await ProceedingPhotos.find({
-      serviceId: mostRecentProceedingId,
-      servicePhotoType: "afterPhotos",
-    });
-
-    if (proceedingAfterPhotos.length > 0) {
-      mostRecentProceedingAfterPhotoUrl = `${proceedingAfterPhotos[0].baseUrl}?${proceedingAfterPhotos[0].sasToken}`;
-    }
-
-    const result = await CustomersRepository.findOneAndUpdate(
-      { userId: userId, customerId: customerId },
-      {
-        mostRecentProceedingId,
-        mostRecentProceedingDate,
-        mostRecentProceedingAfterPhotoUrl,
-      }
-    );
-    if (result?.errors) {
-    }
-  }
-};
-
 type Filter = {
   userId: any;
   date?: any;
-  proceedingTypeId?: any;
+  serviceTypeId?: any;
 };
 
 export const GetCustomers = async (
@@ -122,7 +83,7 @@ export const GetCustomers = async (
   customerName?: string,
   startDate?: Date,
   endDate?: Date,
-  proceedingTypeId?: string,
+  serviceTypeId?: string,
   limitParam?: string
 ): Promise<GetCustomersResponse> => {
   const pageNumber = (parseInt(pageNumberParam) || 1) - 1;
@@ -143,18 +104,20 @@ export const GetCustomers = async (
   }
 
   let customerDocuments: any[] = [];
-  if (startDate || endDate || proceedingTypeId) {
+  if (startDate || endDate || serviceTypeId) {
     let filterProceedings: Filter = {
       userId: userId,
     };
     if (startDate && endDate) {
       filterProceedings.date = { $gte: startDate, $lte: endDate };
     }
-    if (proceedingTypeId) {
-      filterProceedings.proceedingTypeId = proceedingTypeId;
+    if (serviceTypeId) {
+      filterProceedings.serviceTypeId = serviceTypeId;
     }
 
-    const proceedingDocuments = await Proceedings.find(filterProceedings);
+    const proceedingDocuments = await ServicesRepository.find(
+      filterProceedings
+    );
     const customersIds = proceedingDocuments.map((p) => p.customerId);
 
     totalCustomers = customerName

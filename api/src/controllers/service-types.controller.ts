@@ -6,7 +6,7 @@ import {
   CreateServiceType,
   GetServicesTypes,
   UpdateServiceType,
-} from "../services/service.types";
+} from "../services/service.types-service";
 import { UpdateServiceTypeRequest } from "../models/customers/services/service-types/UpdateServiceTypeRequest";
 
 export default (): { [key: string]: Middleware } => ({

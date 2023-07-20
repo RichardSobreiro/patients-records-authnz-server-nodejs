@@ -20,11 +20,11 @@ export const CreateServiceType = async (
   let serviceTypeResponse: CreateServiceTypeResponse | undefined = undefined;
   try {
     const serviceTypeDocument = await ServiceTypeRepository.insertMany({
-      // userId: userId,
+      userId: userId,
       serviceTypeId: serviceTypeId,
       serviceTypeDescription: request.serviceTypeDescription,
       notes: request.notes,
-      isDefault: true,
+      isDefault: false,
       creationDate: new Date(),
     });
 
@@ -86,6 +86,16 @@ export const GetServicesTypes = async (
     );
     response.serviceTypes?.push(proceedingType);
   }
+
+  // response.serviceTypes.sort((a, b) => {
+  //   if (!a.isDefault && b.isDefault) {
+  //     return 1;
+  //   } else if (a.isDefault && !b.isDefault) {
+  //     return -1;
+  //   }
+
+  //   return a.serviceTypeDescription.localeCompare(b.serviceTypeDescription);
+  // });
 
   return response;
 };

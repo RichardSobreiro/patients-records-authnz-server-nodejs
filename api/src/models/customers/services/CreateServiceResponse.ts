@@ -1,5 +1,7 @@
 /** @format */
 
+import { GetServiceTypeResponse } from "./service-types/GetServiceTypesResponse";
+
 export class CreateServicePhotosResponse {
   constructor(
     public serviceId: string,
@@ -14,9 +16,11 @@ export class CreateServicePhotosResponse {
 export class CreateServiceResponse {
   constructor(
     public serviceId: string,
+    public customerId: string,
     public date: Date,
-    public serviceTypeDescription: string,
-    public notes?: string,
+    public serviceTypes: GetServiceTypeResponse[],
+    public beforeNotes?: string,
+    public afterNotes?: string,
     public beforePhotos?: CreateServicePhotosResponse[] | null,
     public afterPhotos?: CreateServicePhotosResponse[] | null
   ) {}

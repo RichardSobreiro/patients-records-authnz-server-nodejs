@@ -7,7 +7,7 @@ import {
   GetAnamnesisById,
   GetAnamnesisListAsync,
   UpdateAnamnesis,
-} from "../services/anamnesis";
+} from "../services/anamnesis-service";
 import { UpdateAnamnesisRequest } from "../models/customers/UpdateAnamnesisRequest";
 
 export default (): { [key: string]: Middleware } => ({

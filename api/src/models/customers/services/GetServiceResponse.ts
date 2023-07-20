@@ -1,5 +1,8 @@
 /** @format */
 
+import { CreateServicePhotosResponse } from "./CreateServiceResponse";
+import { GetServiceTypeResponse } from "./service-types/GetServiceTypesResponse";
+
 export class GetServicePhotosResponse {
   constructor(
     public serviceId: string,
@@ -14,11 +17,13 @@ export class GetServicePhotosResponse {
 export class GetServiceResponse {
   constructor(
     public serviceId: string,
+    public customerId: string,
     public date: Date,
-    public serviceTypeDescription: string,
-    public notes?: string,
-    public beforePhotos?: GetServicePhotosResponse[] | null,
-    public afterPhotos?: GetServicePhotosResponse[] | null
+    public serviceTypes: GetServiceTypeResponse[],
+    public beforeNotes?: string,
+    public afterNotes?: string,
+    public beforePhotos?: CreateServicePhotosResponse[] | null,
+    public afterPhotos?: CreateServicePhotosResponse[] | null
   ) {}
 }
 
@@ -26,12 +31,12 @@ class ListPage {
   constructor(public pageNumber: number, public limit: number) {}
 }
 
-export class GetProceedingsResponse {
+export class GetServicesResponse {
   constructor(
     public customerId: string,
-    public proceedingsCount: number,
+    public servicesCount: number,
     public previous?: ListPage,
     public next?: ListPage,
-    public proceedings?: GetServiceResponse[] | null
+    public servicesList?: GetServiceResponse[] | null
   ) {}
 }

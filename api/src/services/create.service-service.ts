@@ -1,6 +1,6 @@
 /** @format */
-import { Proceedings } from "../db/models/Proceedings";
-import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
+import { ServicesRepository } from "../db/models/ServicesRepository";
+import { ServicePhotosRepository } from "../db/models/ServicePhotosRepository";
 import { CustomersRepository } from "../db/models/CustomersRepository";
 import { CreateServiceRequest } from "../models/customers/services/CreateServiceRequest";
 import {
@@ -17,7 +17,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { ContainerClient } from "@azure/storage-blob";
 
-export const createProceeding = async (
+export const createService = async (
   userId: string,
   customerId: string,
   request: CreateServiceRequest,
@@ -27,21 +27,24 @@ export const createProceeding = async (
     customerId: customerId,
   });
 
-  const proceeding = await Proceedings.create({
-    userId: userId,
+  const serviceDocument = await ServicesRepository.create({
     serviceId: uuidv4(),
-    creationDate: new Date(),
     customerId: customerId,
+    userId: userId,
+    creationDate: new Date(),
     date: new Date(request.date),
-    proceedingTypeId: request.serviceTypeId,
-    notes: request.notes,
+    serviceTypeIds: request.serviceTypes.map((type) => type.serviceTypeId),
+    beforeNotes: request.beforeNotes,
+    afterNotesNotes: request.afterNotes,
   });
 
   const response = new CreateServiceResponse(
-    proceeding.serviceId,
-    proceeding.date,
-    request.serviceTypeDescription,
-    proceeding.notes
+    serviceDocument.serviceId,
+    serviceDocument.customerId,
+    serviceDocument.date,
+    request.serviceTypes,
+    serviceDocument.beforeNotes,
+    serviceDocument.afterNotes
   );
 
   const containerClient = await createContainerClient(customer?.userId!);
@@ -53,7 +56,7 @@ export const createProceeding = async (
     response.beforePhotos = await processBeforePhotos(
       beforePhotos,
       containerClient,
-      proceeding.serviceId,
+      serviceDocument.serviceId,
       customer?.userId!
     );
   }
@@ -63,7 +66,7 @@ export const createProceeding = async (
     response.afterPhotos = await processAfterPhotos(
       afterPhotos,
       containerClient,
-      proceeding.serviceId,
+      serviceDocument.serviceId,
       customer?.userId!
     );
   }
@@ -143,7 +146,7 @@ const processPhotos = async (
 
     const sasToken = await createBlobSas(username, filename);
 
-    const proceedingPhotoCreated = await ProceedingPhotos.create({
+    const servicePhotoCreatedDocument = await ServicePhotosRepository.create({
       serviceId: serviceId,
       creationDate: new Date(),
       servicePhotoId: servicePhotoId,
@@ -159,11 +162,11 @@ const processPhotos = async (
 
     const photoResponse = new CreateServicePhotosResponse(
       serviceId,
-      proceedingPhotoCreated.servicePhotoId,
-      proceedingPhotoCreated.servicePhotoType,
-      proceedingPhotoCreated.creationDate,
-      `${baseUrl}?${proceedingPhotoCreated.sasToken}`,
-      proceedingPhotoCreated.sasTokenExpiresOn
+      servicePhotoCreatedDocument.servicePhotoId,
+      servicePhotoCreatedDocument.servicePhotoType,
+      servicePhotoCreatedDocument.creationDate,
+      `${baseUrl}?${servicePhotoCreatedDocument.sasToken}`,
+      servicePhotoCreatedDocument.sasTokenExpiresOn
     );
 
     photosResponse.push(photoResponse);

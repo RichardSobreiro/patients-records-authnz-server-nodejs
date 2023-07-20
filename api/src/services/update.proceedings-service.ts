@@ -1,7 +1,7 @@
 /** @format */
 import { ServiceTypeRepository } from "../db/models/ServiceTypesRepository";
-import { Proceedings } from "../db/models/Proceedings";
-import { ProceedingPhotos } from "../db/models/ProceedingPhotos";
+import { ServicesRepository } from "../db/models/ServicesRepository";
+import { ServicePhotosRepository } from "../db/models/ServicePhotosRepository";
 import { CustomersRepository } from "../db/models/CustomersRepository";
 import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
 import {
@@ -18,7 +18,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { ContainerClient } from "@azure/storage-blob";
 
-export const updateProceeding = async (
+export const updateService = async (
   userId: string,
   customerId: string,
   serviceId: string,
@@ -29,7 +29,7 @@ export const updateProceeding = async (
     customerId: customerId,
   });
 
-  const proceeding = await Proceedings.findOneAndUpdate(
+  const proceeding = await ServicesRepository.findOneAndUpdate(
     { userId: userId, serviceId: serviceId },
     {
       userId: userId,
@@ -37,7 +37,7 @@ export const updateProceeding = async (
       creationDate: new Date(),
       customerId: customerId,
       date: new Date(request.date),
-      proceedingTypeId: request.serviceTypeId,
+      serviceTypeId: request.serviceTypeId,
       notes: request.notes,
     }
   );
@@ -55,14 +55,14 @@ export const updateProceeding = async (
   const afterPhotos = files["afterPhotos"];
 
   if (request.beforePhotosCreateNew) {
-    const deletedProceedingsPhotos = await ProceedingPhotos.find({
+    const deletedProceedingsPhotos = await ServicePhotosRepository.find({
       serviceId: serviceId,
       servicePhotoType: "beforePhotos",
     });
     for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
       await containerClient.deleteBlob(deletedProceedingPhoto.filename);
     }
-    await ProceedingPhotos.deleteMany({
+    await ServicePhotosRepository.deleteMany({
       serviceId: serviceId,
       servicePhotoType: "beforePhotos",
     });
@@ -78,14 +78,14 @@ export const updateProceeding = async (
   }
 
   if (request.afterPhotosCreateNew) {
-    const deletedProceedingsPhotos = await ProceedingPhotos.find({
+    const deletedProceedingsPhotos = await ServicePhotosRepository.find({
       serviceId: serviceId,
       servicePhotoType: "afterPhotos",
     });
     for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
       await containerClient.deleteBlob(deletedProceedingPhoto.filename);
     }
-    await ProceedingPhotos.deleteMany({
+    await ServicePhotosRepository.deleteMany({
       serviceId: serviceId,
       servicePhotoType: "afterPhotos",
     });
@@ -175,7 +175,7 @@ const processPhotos = async (
 
     const sasToken = await createBlobSas(username, filename);
 
-    const proceedingPhotoCreated = await ProceedingPhotos.create({
+    const servicePhotoCreatedDocument = await ServicePhotosRepository.create({
       serviceId: serviceId,
       creationDate: new Date(),
       servicePhotoId: servicePhotoId,
@@ -191,11 +191,11 @@ const processPhotos = async (
 
     const photoResponse = new UpdateServicePhotosResponse(
       serviceId,
-      proceedingPhotoCreated.servicePhotoId,
-      proceedingPhotoCreated.servicePhotoType,
-      proceedingPhotoCreated.creationDate,
-      `${baseUrl}?${proceedingPhotoCreated.sasToken}`,
-      proceedingPhotoCreated.sasTokenExpiresOn
+      servicePhotoCreatedDocument.servicePhotoId,
+      servicePhotoCreatedDocument.servicePhotoType,
+      servicePhotoCreatedDocument.creationDate,
+      `${baseUrl}?${servicePhotoCreatedDocument.sasToken}`,
+      servicePhotoCreatedDocument.sasTokenExpiresOn
     );
 
     photosResponse.push(photoResponse);
