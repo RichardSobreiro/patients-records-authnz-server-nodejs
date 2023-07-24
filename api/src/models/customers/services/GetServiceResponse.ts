@@ -6,8 +6,6 @@ export class GetServiceResponse {
   constructor(
     public serviceId: string,
     public customerId: string,
-    public customerName: string,
-    public phoneNumber: string,
     public date: Date,
     public serviceTypes: GetServiceTypeResponse[]
   ) {}

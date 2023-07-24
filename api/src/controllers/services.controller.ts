@@ -90,8 +90,20 @@ export default (): { [key: string]: Middleware } => ({
       const customerId = ctx.params.customerId;
       const pageNumber = ctx.query.pageNumber as string;
       const limit = ctx.query.limit as string;
+      const startDate = ctx.query.startDate as unknown as Date;
+      const endDate = ctx.query.endDate as unknown as Date;
+      const serviceTypeIds = ctx.query.serviceTypeIds as string[];
+      const userId = ctx.state.session.sub as string;
 
-      const responseBody = await getServices(customerId, pageNumber, limit);
+      const responseBody = await getServices(
+        userId,
+        customerId,
+        pageNumber,
+        limit,
+        startDate,
+        endDate,
+        serviceTypeIds
+      );
 
       ctx.status = 200;
       ctx.message = "Ok";

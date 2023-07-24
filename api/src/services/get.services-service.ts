@@ -3,7 +3,10 @@ import { ServiceTypeRepository } from "../db/models/ServiceTypesRepository";
 import { ServicesRepository } from "../db/models/ServicesRepository";
 import { ServicePhotosRepository } from "../db/models/ServicePhotosRepository";
 import { CustomersRepository } from "../db/models/CustomersRepository";
-import { GetServicesResponse } from "../models/customers/services/GetServiceResponse";
+import {
+  GetServiceResponse,
+  GetServicesResponse,
+} from "../models/customers/services/GetServiceResponse";
 
 import { createBlobSas } from "./azure/azure.storage.account";
 import { GetServiceTypeResponse } from "../models/customers/services/service-types/GetServiceTypesResponse";
@@ -85,7 +88,7 @@ export const getServices = async (
     customerId: customerId,
   });
 
-  const pageNumber = parseInt(pageNumberParam) || 0;
+  const pageNumber = parseInt(pageNumberParam) - 1 || 0;
   const limit = (limitParam && parseInt(limitParam)) || 12;
 
   const filter: any = {};
@@ -101,9 +104,7 @@ export const getServices = async (
   const startIndex = pageNumber * limit;
   const endIndex = (pageNumber + 1) * limit;
 
-  const serviceDocuments = await ServicesRepository.find({
-    ...filter,
-  })
+  const serviceDocuments = await ServicesRepository.find(filter)
     .skip(startIndex)
     .limit(limit)
     .exec();
@@ -120,7 +121,51 @@ export const getServices = async (
     serviceTypeId: { $in: serviceTypeFilteredIds },
   });
 
+  let response = new GetServicesResponse(customerId, servicesCount);
+
+  if (startIndex > 0) {
+    response.previous = {
+      pageNumber: pageNumber - 1,
+      limit: limit,
+    };
+  }
+  if (endIndex < servicesCount) {
+    response.next = {
+      pageNumber: pageNumber + 1,
+      limit: limit,
+    };
+  }
+
+  response.servicesList = [];
   for (const serviceDocument of serviceDocuments) {
+    let serviceTypeDocuments = serviceTypeFilteredDocuments.filter(
+      (document) => {
+        return (
+          serviceDocument.serviceTypeIds.indexOf(document.serviceTypeId) !== -1
+        );
+      }
+    );
+
+    const getServiceTypesResponse: GetServiceTypeResponse[] = [];
+    for (const serviceTypeDocument of serviceTypeDocuments) {
+      getServiceTypesResponse.push(
+        new GetServiceTypeResponse(
+          serviceTypeDocument.serviceTypeId,
+          serviceTypeDocument.serviceTypeDescription,
+          serviceTypeDocument.notes,
+          serviceTypeDocument.isDefault
+        )
+      );
+    }
+
+    const getServiceResponse = new GetServiceResponse(
+      serviceDocument.serviceId,
+      customerId,
+      serviceDocument.date,
+      getServiceTypesResponse
+    );
+
+    response.servicesList?.push(getServiceResponse);
   }
 
   // const totalProceedings = await ServicesRepository.countDocuments({
@@ -194,7 +239,6 @@ export const getServices = async (
   // }
 
   // return response;
-  const response = new GetServicesResponse("", 1, undefined, undefined);
   return response;
 };
 
