@@ -1,15 +1,17 @@
 /** @format */
 
+import { GetServicePhotosResponse } from "./GetServicePhotosResponse";
 import { GetServiceTypeResponse } from "./service-types/GetServiceTypesResponse";
 
-export class UpdateServiceRequest {
+export class GetServiceByIdResponse {
   constructor(
     public serviceId: string,
+    public customerId: string,
     public date: Date,
     public serviceTypes: GetServiceTypeResponse[],
     public beforeNotes?: string,
-    public beforePhotos?: any,
     public afterNotes?: string,
-    public afterPhotos?: any
+    public beforePhotos?: GetServicePhotosResponse[] | null,
+    public afterPhotos?: GetServicePhotosResponse[] | null
   ) {}
 }

@@ -3,19 +3,17 @@ import { ServiceTypeRepository } from "../db/models/ServiceTypesRepository";
 import { ServicesRepository } from "../db/models/ServicesRepository";
 import { ServicePhotosRepository } from "../db/models/ServicePhotosRepository";
 import { CustomersRepository } from "../db/models/CustomersRepository";
-import {
-  GetServiceResponse,
-  GetServicePhotosResponse,
-  GetServicesResponse,
-} from "../models/customers/services/GetServiceResponse";
+import { GetServicesResponse } from "../models/customers/services/GetServiceResponse";
 
 import { createBlobSas } from "./azure/azure.storage.account";
 import { GetServiceTypeResponse } from "../models/customers/services/service-types/GetServiceTypesResponse";
+import { GetServiceByIdResponse } from "../models/customers/services/GetServiceByIdResponse";
+import { GetServicePhotosResponse } from "../models/customers/services/GetServicePhotosResponse";
 
 export const getServiceById = async (
   customerId: string,
   serviceId: string
-): Promise<GetServiceResponse> => {
+): Promise<GetServiceByIdResponse> => {
   const customer = await CustomersRepository.findOne({
     customerId: customerId,
   });
@@ -32,7 +30,7 @@ export const getServiceById = async (
     serviceId: serviceId,
   });
 
-  const response = new GetServiceResponse(
+  const response = new GetServiceByIdResponse(
     serviceDocument?.serviceId!,
     serviceDocument?.customerId!,
     serviceDocument?.date!,
@@ -73,17 +71,57 @@ export const getServiceById = async (
   return response;
 };
 
-export const getProceedings = async (
+export const getServices = async (
+  userId: string,
   customerId: string,
   pageNumberParam: string,
-  limitParam?: string
+  limitParam?: string,
+  startDate?: Date,
+  endDate?: Date,
+  serviceTypeIds?: string[]
 ): Promise<GetServicesResponse> => {
-  // const customer = await CustomersRepository.findOne({
-  //   customerId: customerId,
-  // });
+  const customer = await CustomersRepository.findOne({
+    userId: userId,
+    customerId: customerId,
+  });
 
-  // const pageNumber = parseInt(pageNumberParam) || 0;
-  // const limit = (limitParam && parseInt(limitParam)) || 12;
+  const pageNumber = parseInt(pageNumberParam) || 0;
+  const limit = (limitParam && parseInt(limitParam)) || 12;
+
+  const filter: any = {};
+  filter.userId = userId;
+  filter.customerId = customerId;
+  if (startDate && endDate) {
+    filter.date = { $gte: startDate, $lte: endDate };
+  }
+  if (serviceTypeIds && serviceTypeIds.length > 0) {
+    filter.serviceTypeIds = { $all: serviceTypeIds };
+  }
+
+  const startIndex = pageNumber * limit;
+  const endIndex = (pageNumber + 1) * limit;
+
+  const serviceDocuments = await ServicesRepository.find({
+    ...filter,
+  })
+    .skip(startIndex)
+    .limit(limit)
+    .exec();
+
+  const servicesCount = serviceDocuments.length;
+
+  const serviceTypeFilteredIds = [
+    ...new Set(
+      serviceDocuments.map((document) => document.serviceTypeIds).flat()
+    ),
+  ];
+
+  const serviceTypeFilteredDocuments = await ServiceTypeRepository.find({
+    serviceTypeId: { $in: serviceTypeFilteredIds },
+  });
+
+  for (const serviceDocument of serviceDocuments) {
+  }
 
   // const totalProceedings = await ServicesRepository.countDocuments({
   //   customerId: customerId,

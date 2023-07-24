@@ -29,177 +29,150 @@ export const updateService = async (
     customerId: customerId,
   });
 
-  const proceeding = await ServicesRepository.findOneAndUpdate(
-    { userId: userId, serviceId: serviceId },
+  const oldServiceDocument = await ServicesRepository.findOneAndUpdate(
+    { userId: userId, customerId: customerId, serviceId: serviceId },
     {
-      userId: userId,
-      serviceId: serviceId,
-      creationDate: new Date(),
-      customerId: customerId,
       date: new Date(request.date),
-      serviceTypeId: request.serviceTypeId,
-      notes: request.notes,
+      serviceTypeIds: request.serviceTypes.map((type) => type.serviceTypeId),
+      beforeNotes: request.beforeNotes,
+      afterNotes: request.afterNotes,
     }
   );
 
   const response = new UpdateServiceResponse(
     serviceId,
+    customerId,
     request!.date,
-    request.serviceTypeId,
-    request!.notes
+    request.serviceTypes,
+    request!.beforeNotes,
+    request.afterNotes
   );
 
-  const containerClient = await createContainerClient(customer?.userId!);
+  const beforePhotosFromClient = files["beforePhotos"];
+  response.beforePhotos = await processPhotos(
+    "beforePhotos",
+    serviceId,
+    userId,
+    beforePhotosFromClient
+  );
 
-  const beforePhotos = files["beforePhotos"];
-  const afterPhotos = files["afterPhotos"];
-
-  if (request.beforePhotosCreateNew) {
-    const deletedProceedingsPhotos = await ServicePhotosRepository.find({
-      serviceId: serviceId,
-      servicePhotoType: "beforePhotos",
-    });
-    for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
-      await containerClient.deleteBlob(deletedProceedingPhoto.filename);
-    }
-    await ServicePhotosRepository.deleteMany({
-      serviceId: serviceId,
-      servicePhotoType: "beforePhotos",
-    });
-  }
-
-  if (beforePhotos && beforePhotos.length > 0) {
-    response.beforePhotos = await processBeforePhotos(
-      beforePhotos,
-      containerClient,
-      serviceId,
-      customer?.userId!
-    );
-  }
-
-  if (request.afterPhotosCreateNew) {
-    const deletedProceedingsPhotos = await ServicePhotosRepository.find({
-      serviceId: serviceId,
-      servicePhotoType: "afterPhotos",
-    });
-    for (const deletedProceedingPhoto of deletedProceedingsPhotos) {
-      await containerClient.deleteBlob(deletedProceedingPhoto.filename);
-    }
-    await ServicePhotosRepository.deleteMany({
-      serviceId: serviceId,
-      servicePhotoType: "afterPhotos",
-    });
-  }
-
-  if (afterPhotos && afterPhotos.length > 0) {
-    response.afterPhotos = await processAfterPhotos(
-      afterPhotos,
-      containerClient,
-      serviceId,
-      customer?.userId!
-    );
-  }
+  const afterPhotosFromClient = files["afterPhotos"];
+  response.afterPhotos = await processPhotos(
+    "afterPhotos",
+    serviceId,
+    userId,
+    afterPhotosFromClient
+  );
 
   return response;
 };
 
-const processBeforePhotos = async (
-  beforePhotos: any[],
-  containerClient: ContainerClient,
-  serviceId: string,
-  username: string
-): Promise<UpdateServicePhotosResponse[] | null> => {
-  if (beforePhotos && beforePhotos.length > 0) {
-    const beforePhotosResponse: UpdateServicePhotosResponse[] =
-      await processPhotos(
-        beforePhotos,
-        "beforePhotos",
-        containerClient,
-        serviceId,
-        username
-      );
-    return beforePhotosResponse;
-  } else {
-    return null;
-  }
-};
-
-const processAfterPhotos = async (
-  afterPhotos: any[],
-  containerClient: ContainerClient,
-  serviceId: string,
-  username: string
-): Promise<UpdateServicePhotosResponse[] | null> => {
-  if (afterPhotos && afterPhotos.length > 0) {
-    const afterPhotosResponse: UpdateServicePhotosResponse[] =
-      await processPhotos(
-        afterPhotos,
-        "afterPhotos",
-        containerClient,
-        serviceId,
-        username
-      );
-    return afterPhotosResponse;
-  } else {
-    return null;
-  }
-};
-
 const processPhotos = async (
-  photosToBeCreated: any[],
+  photosType: "beforePhotos" | "afterPhotos",
+  serviceId: string,
+  userId: string,
+  photosFromClient: any
+): Promise<UpdateServicePhotosResponse[] | null | undefined> => {
+  const containerClient = await createContainerClient(userId);
+  const updatedPhotos: UpdateServicePhotosResponse[] | null | undefined = [];
+
+  const existingPhotosDocuments = await ServicePhotosRepository.find({
+    serviceId: serviceId,
+    servicePhotoType: photosType,
+  });
+
+  for (const photoFromClient of photosFromClient) {
+    const existingPhotoDocument = existingPhotosDocuments.find(
+      (document) => document.servicePhotoId === photoFromClient.originalname
+    );
+    if (!existingPhotoDocument) {
+      const createdPhoto = await createServicePhoto(
+        photoFromClient,
+        photosType,
+        containerClient,
+        serviceId,
+        userId
+      );
+      updatedPhotos.push(createdPhoto);
+    } else {
+      const photo = new UpdateServicePhotosResponse(
+        serviceId,
+        existingPhotoDocument.servicePhotoId,
+        existingPhotoDocument.servicePhotoType,
+        existingPhotoDocument.creationDate,
+        existingPhotoDocument.baseUrl,
+        existingPhotoDocument.sasTokenExpiresOn
+      );
+      updatedPhotos.push(photo);
+    }
+  }
+
+  for (const existingPhoto of existingPhotosDocuments) {
+    const deletedPhoto = photosFromClient.find(
+      (photoFromClient) =>
+        photoFromClient.originalname === existingPhoto.servicePhotoId
+    );
+    if (!deletedPhoto) {
+      await containerClient.deleteBlob(existingPhoto.filename);
+      await ServicePhotosRepository.deleteMany({
+        serviceId: serviceId,
+        servicePhotoId: existingPhoto.servicePhotoId,
+      });
+    }
+  }
+
+  return updatedPhotos;
+};
+
+const createServicePhoto = async (
+  photoToBeCreated: any,
   photoType: string,
   containerClient: ContainerClient,
   serviceId: string,
   username: string
-): Promise<UpdateServicePhotosResponse[]> => {
-  const photosResponse: UpdateServicePhotosResponse[] = [];
+): Promise<UpdateServicePhotosResponse> => {
+  const imageType = photoToBeCreated.mimetype.slice(
+    photoToBeCreated.mimetype.indexOf("/") + 1
+  );
+  const servicePhotoId = uuidv4();
+  const filename = `${servicePhotoId}.${imageType}`;
+  const baseUrl = getBaseBlobURL(username, filename);
 
-  for (const photoToBeCreated of photosToBeCreated) {
-    const imageType = photoToBeCreated.mimetype.slice(
-      photoToBeCreated.mimetype.indexOf("/") + 1
-    );
-    const servicePhotoId = uuidv4();
-    const filename = `${servicePhotoId}.${imageType}`;
-    const baseUrl = getBaseBlobURL(username, filename);
+  const blobClient = await createBlobClient(containerClient, filename);
 
-    const blobClient = await createBlobClient(containerClient, filename);
+  const options = {
+    blobHTTPHeaders: {
+      blobContentType: photoToBeCreated.mimetype,
+      blobContentEncoding: photoToBeCreated.encoding,
+    },
+  };
 
-    const options = {
-      blobHTTPHeaders: {
-        blobContentType: photoToBeCreated.mimetype,
-        blobContentEncoding: photoToBeCreated.encoding,
-      },
-    };
+  await blobClient.uploadData(photoToBeCreated.buffer, options);
 
-    await blobClient.uploadData(photoToBeCreated.buffer, options);
+  const sasToken = await createBlobSas(username, filename);
 
-    const sasToken = await createBlobSas(username, filename);
+  const servicePhotoCreatedDocument = await ServicePhotosRepository.create({
+    serviceId: serviceId,
+    creationDate: new Date(),
+    servicePhotoId: servicePhotoId,
+    servicePhotoType: photoType,
+    mimeType: photoToBeCreated.mimetype,
+    imageType: imageType,
+    contentEncoding: photoToBeCreated.encoding,
+    filename: filename,
+    baseUrl: baseUrl,
+    sasToken: sasToken.sasToken,
+    sasTokenExpiresOn: sasToken.expiresOn,
+  });
 
-    const servicePhotoCreatedDocument = await ServicePhotosRepository.create({
-      serviceId: serviceId,
-      creationDate: new Date(),
-      servicePhotoId: servicePhotoId,
-      servicePhotoType: photoType,
-      mimeType: photoToBeCreated.mimetype,
-      imageType: imageType,
-      contentEncoding: photoToBeCreated.encoding,
-      filename: filename,
-      baseUrl: baseUrl,
-      sasToken: sasToken.sasToken,
-      sasTokenExpiresOn: sasToken.expiresOn,
-    });
+  const photoResponse = new UpdateServicePhotosResponse(
+    serviceId,
+    servicePhotoCreatedDocument.servicePhotoId,
+    servicePhotoCreatedDocument.servicePhotoType,
+    servicePhotoCreatedDocument.creationDate,
+    `${baseUrl}?${servicePhotoCreatedDocument.sasToken}`,
+    servicePhotoCreatedDocument.sasTokenExpiresOn
+  );
 
-    const photoResponse = new UpdateServicePhotosResponse(
-      serviceId,
-      servicePhotoCreatedDocument.servicePhotoId,
-      servicePhotoCreatedDocument.servicePhotoType,
-      servicePhotoCreatedDocument.creationDate,
-      `${baseUrl}?${servicePhotoCreatedDocument.sasToken}`,
-      servicePhotoCreatedDocument.sasTokenExpiresOn
-    );
-
-    photosResponse.push(photoResponse);
-  }
-
-  return photosResponse;
+  return photoResponse;
 };

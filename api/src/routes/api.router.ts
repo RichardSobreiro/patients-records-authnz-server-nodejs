@@ -26,13 +26,8 @@ export default () => {
   const { createServiceType, getServiceTypeList, updateServiceType } =
     serviceTypesController();
 
-  const {
-    createService,
-    getServiceById,
-    getProceedings,
-    getProceedingsTypesByEmail,
-    updateService,
-  } = servicesController();
+  const { createService, getServiceById, getServices, updateService } =
+    servicesController();
 
   //------------------------------------------------------------------------------------------------------
   router.get("/pi", authenticate, authorize("api:read"), pi);
@@ -73,66 +68,64 @@ export default () => {
   );
   //------------------------------------------------------------------------------------------------------
   router.post(
-    "/customers/:customerId/servicesList",
+    "/customers/:customerId/services",
     authenticate,
     upload.fields([
       {
         name: "date",
       },
       {
-        name: "serviceTypeDescription",
+        name: "serviceTypes",
       },
       {
-        name: "notes",
+        name: "beforeNotes",
+      },
+      {
+        name: "afterNotes",
       },
       {
         name: "beforePhotos",
-        maxCount: 5,
       },
       {
         name: "afterPhotos",
-        maxCount: 5,
       },
     ]),
     createService
   );
 
   router.put(
-    "/customers/:customerId/servicesList/:serviceId",
+    "/customers/:customerId/services/:serviceId",
     authenticate,
     upload.fields([
       {
         name: "date",
       },
       {
-        name: "serviceTypeDescription",
+        name: "serviceTypes",
       },
       {
-        name: "notes",
+        name: "beforeNotes",
+      },
+      {
+        name: "afterNotes",
       },
       {
         name: "beforePhotos",
-        maxCount: 5,
       },
       {
         name: "afterPhotos",
-        maxCount: 5,
       },
     ]),
     updateService
   );
 
   router.get(
-    "/customers/:customerId/servicesList/:serviceId",
+    "/customers/:customerId/services/:serviceId",
     authenticate,
     getServiceById
   );
 
-  router.get(
-    "/customers/:customerId/servicesList",
-    authenticate,
-    getProceedings
-  );
+  router.get("/customers/:customerId/services", authenticate, getServices);
 
   return router;
 };

@@ -2,12 +2,10 @@
 import { Middleware, Request } from "koa";
 import { CreateServiceRequest } from "../models/customers/services/CreateServiceRequest";
 import { createService } from "../services/create.service-service";
-import {
-  getServiceById,
-  getProceedings,
-} from "../services/get.services-service";
+import { getServiceById, getServices } from "../services/get.services-service";
 import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
 import { updateService } from "../services/update.proceedings-service";
+import { GetServiceTypeResponse } from "../models/customers/services/service-types/GetServiceTypesResponse";
 
 interface MulterRequest extends Request {
   files: any;
@@ -18,6 +16,9 @@ export default (): { [key: string]: Middleware } => ({
     try {
       const files = (ctx.request as MulterRequest).files;
       const requestBody = ctx.request.body as CreateServiceRequest;
+      requestBody.serviceTypes = JSON.parse(
+        (ctx.request.body! as any).serviceTypes
+      ) as GetServiceTypeResponse[];
       const customerId = ctx.params.customerId;
       const userId = ctx.state.session.sub as string;
 
@@ -59,6 +60,9 @@ export default (): { [key: string]: Middleware } => ({
     try {
       const files = (ctx.request as MulterRequest).files;
       const requestBody = ctx.request.body as UpdateServiceRequest;
+      requestBody.serviceTypes = JSON.parse(
+        (ctx.request.body! as any).serviceTypes
+      ) as GetServiceTypeResponse[];
       const customerId = ctx.params.customerId;
       const serviceId = ctx.params.serviceId;
       const userId = ctx.state.session.sub as string;
@@ -81,13 +85,13 @@ export default (): { [key: string]: Middleware } => ({
       ctx.response.body = { message: e.message, stackTrace: e.stack };
     }
   },
-  getProceedings: async (ctx) => {
+  getServices: async (ctx) => {
     try {
       const customerId = ctx.params.customerId;
       const pageNumber = ctx.query.pageNumber as string;
       const limit = ctx.query.limit as string;
 
-      const responseBody = await getProceedings(customerId, pageNumber, limit);
+      const responseBody = await getServices(customerId, pageNumber, limit);
 
       ctx.status = 200;
       ctx.message = "Ok";

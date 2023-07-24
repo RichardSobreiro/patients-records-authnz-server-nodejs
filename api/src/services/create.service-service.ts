@@ -23,55 +23,62 @@ export const createService = async (
   request: CreateServiceRequest,
   files: any
 ): Promise<CreateServiceResponse> => {
+  const serviceId = uuidv4();
+
   const customer = await CustomersRepository.findOne({
     customerId: customerId,
   });
+  try {
+    const serviceDocument = await ServicesRepository.create({
+      serviceId: serviceId,
+      customerId: customerId,
+      userId: userId,
+      creationDate: new Date(),
+      date: new Date(request.date),
+      serviceTypeIds: request.serviceTypes.map((type) => type.serviceTypeId),
+      beforeNotes: request.beforeNotes,
+      afterNotes: request.afterNotes,
+    });
 
-  const serviceDocument = await ServicesRepository.create({
-    serviceId: uuidv4(),
-    customerId: customerId,
-    userId: userId,
-    creationDate: new Date(),
-    date: new Date(request.date),
-    serviceTypeIds: request.serviceTypes.map((type) => type.serviceTypeId),
-    beforeNotes: request.beforeNotes,
-    afterNotesNotes: request.afterNotes,
-  });
-
-  const response = new CreateServiceResponse(
-    serviceDocument.serviceId,
-    serviceDocument.customerId,
-    serviceDocument.date,
-    request.serviceTypes,
-    serviceDocument.beforeNotes,
-    serviceDocument.afterNotes
-  );
-
-  const containerClient = await createContainerClient(customer?.userId!);
-
-  containerClient.createIfNotExists();
-
-  const beforePhotos = files["beforePhotos"];
-  if (beforePhotos && beforePhotos.length > 0) {
-    response.beforePhotos = await processBeforePhotos(
-      beforePhotos,
-      containerClient,
+    const response = new CreateServiceResponse(
       serviceDocument.serviceId,
-      customer?.userId!
+      serviceDocument.customerId,
+      serviceDocument.date,
+      request.serviceTypes,
+      serviceDocument.beforeNotes,
+      serviceDocument.afterNotes
     );
-  }
 
-  const afterPhotos = files["afterPhotos"];
-  if (afterPhotos && afterPhotos.length > 0) {
-    response.afterPhotos = await processAfterPhotos(
-      afterPhotos,
-      containerClient,
-      serviceDocument.serviceId,
-      customer?.userId!
-    );
-  }
+    const containerClient = await createContainerClient(customer?.userId!);
 
-  return response;
+    containerClient.createIfNotExists();
+
+    const beforePhotos = files["beforePhotos"];
+    if (beforePhotos && beforePhotos.length > 0) {
+      response.beforePhotos = await processBeforePhotos(
+        beforePhotos,
+        containerClient,
+        serviceDocument.serviceId,
+        customer?.userId!
+      );
+    }
+
+    const afterPhotos = files["afterPhotos"];
+    if (afterPhotos && afterPhotos.length > 0) {
+      response.afterPhotos = await processAfterPhotos(
+        afterPhotos,
+        containerClient,
+        serviceDocument.serviceId,
+        customer?.userId!
+      );
+    }
+
+    return response;
+  } catch (error: any) {
+    ServicePhotosRepository.deleteMany({ serviceId: serviceId });
+    ServicesRepository.deleteMany({ serviceId: serviceId });
+    throw error;
+  }
 };
 
 const processBeforePhotos = async (
