@@ -105,11 +105,12 @@ export const getServices = async (
   const endIndex = (pageNumber + 1) * limit;
 
   const serviceDocuments = await ServicesRepository.find(filter)
+    .sort({ date: "desc" })
     .skip(startIndex)
     .limit(limit)
     .exec();
 
-  const servicesCount = serviceDocuments.length;
+  const servicesCount = await ServicesRepository.countDocuments(filter).exec();
 
   const serviceTypeFilteredIds = [
     ...new Set(
