@@ -8,7 +8,6 @@ interface Anamnese {
   creationDate: Date;
   date: Date;
   type: string[];
-  birthDate: Date;
   freeTypeText?: string;
   gender?: string;
   ethnicity?: string;
@@ -39,10 +38,6 @@ const AnamneseSchema = new Schema({
   },
   type: {
     type: [String],
-    required: true,
-  },
-  birthDate: {
-    type: Date,
     required: true,
   },
   freeTypeText: {

@@ -58,6 +58,7 @@ export const UpdateCustomer = async (
     {
       customerName: request.customerName,
       phoneNumber: request.phoneNumber,
+      birthDate: request.birthDate,
       email: request.email,
     }
   );
@@ -66,6 +67,7 @@ export const UpdateCustomer = async (
     result!.customerId,
     request.customerName,
     request.phoneNumber,
+    request.birthDate,
     result!.creationDate,
     request!.email
   );
@@ -225,7 +227,15 @@ export const GetCustomers = async (
     customers.push(customer);
   });
 
-  response.customers = customers;
+  response.customers = customers.sort(function (a, b) {
+    if (a.customerName < b.customerName) {
+      return -1;
+    }
+    if (a.customerName > b.customerName) {
+      return 1;
+    }
+    return 0;
+  });
 
   return response;
 };
@@ -246,6 +256,7 @@ export const GetCustomerById = async (
     customerDocument!.customerId,
     customerDocument!.customerName,
     customerDocument!.phoneNumber,
+    customerDocument!.birthDate,
     customerDocument!.creationDate,
     customerDocument!.email
   );

@@ -36,6 +36,10 @@ const CustomersSchema = new Schema({
     type: String,
     required: true,
   },
+  birthDate: {
+    type: Date,
+    required: true,
+  },
   creationDate: {
     type: Date,
     required: true,

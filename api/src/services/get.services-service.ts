@@ -83,11 +83,6 @@ export const getServices = async (
   endDate?: Date,
   serviceTypeIds?: string[]
 ): Promise<GetServicesResponse> => {
-  const customer = await CustomersRepository.findOne({
-    userId: userId,
-    customerId: customerId,
-  });
-
   const pageNumber = parseInt(pageNumberParam) - 1 || 0;
   const limit = (limitParam && parseInt(limitParam)) || 12;
 

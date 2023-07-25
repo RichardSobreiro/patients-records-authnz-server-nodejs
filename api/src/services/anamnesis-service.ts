@@ -27,7 +27,6 @@ export const CreateAnamnesis = async (
       creationDate: new Date(),
       date: request.date,
       type: request.type,
-      birthDate: request.birthDate,
       freeTypeText: request.freeTypeText,
       gender: request.gender,
       ethnicity: request.ethnicity,
@@ -42,7 +41,6 @@ export const CreateAnamnesis = async (
       anamneseDocument[0].creationDate,
       anamneseDocument[0].date,
       anamneseDocument[0].type,
-      anamneseDocument[0].birthDate,
       anamneseDocument[0].freeTypeText,
       anamneseDocument[0].gender,
       anamneseDocument[0].ethnicity,
@@ -76,8 +74,26 @@ export const GetAnamnesisListAsync = async (
   const pageNumber = (parseInt(pageNumberParam) || 1) - 1;
   const limit = (limitParam && parseInt(limitParam)) || 12;
 
+  const filter: any = {};
+  filter.userId = userId;
+  filter.customerId = customerId;
+  if (startDate && endDate) {
+    filter.date = { $gte: startDate, $lte: endDate };
+  }
+  if (anamnesisType) {
+    filter.type = { $all: [anamnesisType] };
+  }
+
   const startIndex = pageNumber * limit;
   const endIndex = (pageNumber + 1) * limit;
+
+  const ananmnesisDocuments = await AnamneseRepository.find(filter)
+    .sort({ date: "desc" })
+    .skip(startIndex)
+    .limit(limit)
+    .exec();
+
+  const anamnesisCount = await AnamneseRepository.countDocuments(filter).exec();
 
   let previous: ListPage | undefined = undefined;
   let next: ListPage | undefined = undefined;
@@ -89,29 +105,17 @@ export const GetAnamnesisListAsync = async (
     };
   }
 
-  const total = await AnamneseRepository.countDocuments({
-    customerId: customerId,
-  }).exec();
-
-  if (endIndex < total) {
+  if (endIndex < anamnesisCount) {
     next = {
       pageNumber: pageNumber + 1,
       limit: limit,
     };
   }
 
-  const ananmnesisDocuments = await AnamneseRepository.find({
-    customerId: customerId,
-  })
-    .sort({ date: -1, creationDate: -1 })
-    .skip(startIndex)
-    .limit(limit)
-    .exec();
-
   const response = new GetAnamnesisResponse(
     userId,
     customerId,
-    total,
+    anamnesisCount,
     previous,
     next
   );
@@ -124,8 +128,7 @@ export const GetAnamnesisListAsync = async (
       entity.customerId,
       entity.creationDate,
       entity.date,
-      entity.type,
-      entity.birthDate
+      entity.type
     );
 
     anamnesis.push(customer);
@@ -153,7 +156,6 @@ export const GetAnamnesisById = async (
       anamnesisDocument[0].creationDate,
       anamnesisDocument[0].date,
       anamnesisDocument[0].type,
-      anamnesisDocument[0].birthDate,
       anamnesisDocument[0].freeTypeText,
       anamnesisDocument[0].gender,
       anamnesisDocument[0].ethnicity,
@@ -178,7 +180,6 @@ export const UpdateAnamnesis = async (
         customerId: request.customerId,
         date: request.date,
         type: request.type,
-        birthDate: request.birthDate,
         freeTypeText: request.freeTypeText,
         gender: request.gender,
         ethnicity: request.ethnicity,
@@ -193,7 +194,6 @@ export const UpdateAnamnesis = async (
       request.customerId,
       request.date,
       request.type,
-      request.birthDate,
       request.freeTypeText,
       request.gender,
       request.ethnicity,

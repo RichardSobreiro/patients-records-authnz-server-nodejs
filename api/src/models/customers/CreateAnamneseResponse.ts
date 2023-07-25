@@ -7,7 +7,6 @@ export class CreateAnamneseResponse {
     public creationDate: Date,
     public date: Date,
     public type: string[],
-    public birthDate: Date,
     public freeTypeText?: string,
     public gender?: string,
     public ethnicity?: string,
