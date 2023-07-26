@@ -42,9 +42,11 @@ export default (): { [key: string]: Middleware } => ({
   getCustomers: async (ctx) => {
     try {
       const customerName = ctx.query.customerName as string;
-      const startDate = ctx.query.startDate as unknown as Date;
-      const endDate = ctx.query.endDate as unknown as Date;
-      const serviceTypeId = ctx.query.serviceTypeId as string;
+      const lastServiceStartDate = ctx.query
+        .lastServiceStartDate as unknown as Date;
+      const lastServiceEndDate = ctx.query
+        .lastServiceEndDate as unknown as Date;
+      const serviceTypeIds = ctx.query.serviceTypeIds as string[];
       const pageNumber = ctx.query.pageNumber as string;
       const limit = ctx.query.limit as string;
 
@@ -54,9 +56,9 @@ export default (): { [key: string]: Middleware } => ({
         userId,
         pageNumber,
         customerName,
-        startDate,
-        endDate,
-        serviceTypeId,
+        lastServiceStartDate,
+        lastServiceEndDate,
+        serviceTypeIds,
         limit
       );
 

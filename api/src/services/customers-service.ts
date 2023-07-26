@@ -83,55 +83,79 @@ export const GetCustomers = async (
   userId: string,
   pageNumberParam: string,
   customerName?: string,
-  startDate?: Date,
-  endDate?: Date,
-  serviceTypeId?: string,
+  lastServiceStartDate?: Date,
+  lastServiceEndDate?: Date,
+  serviceTypeIds?: string[],
   limitParam?: string
 ): Promise<GetCustomersResponse> => {
   const pageNumber = (parseInt(pageNumberParam) || 1) - 1;
   const limit = (limitParam && parseInt(limitParam)) || 12;
 
+  const filter: any = {};
+  filter.userId = userId;
+  if (customerName && customerName !== "") {
+    filter.customerName = { $regex: customerName, $options: "i" };
+  }
+  if (serviceTypeIds && serviceTypeIds.length > 0) {
+    filter.serviceTypeIds = { $all: serviceTypeIds };
+  }
+
   const startIndex = pageNumber * limit;
   const endIndex = (pageNumber + 1) * limit;
 
-  let totalCustomers = 0;
   let previous: ListPage | undefined = undefined;
   let next: ListPage | undefined = undefined;
 
-  if (startIndex > 0) {
-    previous = {
-      pageNumber: pageNumber - 1,
-      limit: limit,
-    };
-  }
+  const filterCustomersServices: any = {};
+  if (lastServiceStartDate && lastServiceEndDate) {
+    const customerDocuments = await CustomersRepository.find(filter).exec();
 
-  let customerDocuments: any[] = [];
-  if (startDate || endDate || serviceTypeId) {
-    let filterProceedings: Filter = {
-      userId: userId,
+    filterCustomersServices.userId = userId;
+    filterCustomersServices.customerId = {
+      $in: customerDocuments.map((doc) => doc.customerId),
     };
-    if (startDate && endDate) {
-      filterProceedings.date = { $gte: startDate, $lte: endDate };
-    }
-    if (serviceTypeId) {
-      filterProceedings.serviceTypeId = serviceTypeId;
-    }
+    filterCustomersServices.date = {
+      $gte: lastServiceStartDate,
+      $lte: lastServiceEndDate,
+    };
 
-    const proceedingDocuments = await ServicesRepository.find(
-      filterProceedings
+    const customersServicesDocuments = await ServicesRepository.find(
+      filterCustomersServices
     );
-    const customersIds = proceedingDocuments.map((p) => p.customerId);
 
-    totalCustomers = customerName
-      ? await CustomersRepository.countDocuments({
-          userId: userId,
-          customerId: { $in: customersIds },
-          customerName: { $regex: customerName, $options: "i" },
-        }).exec()
-      : await CustomersRepository.countDocuments({
-          userId: userId,
-          customerId: { $in: customersIds },
-        }).exec();
+    let customers: GetCustomer[] = [];
+
+    customerDocuments.forEach((entity) => {
+      const servicesMatchingDateRange = customersServicesDocuments.find(
+        (doc) => doc.customerId === entity.customerId
+      );
+      if (servicesMatchingDateRange) {
+        const customer: GetCustomer = new GetCustomer(
+          entity.userId,
+          entity.customerId,
+          entity.customerName,
+          entity.phoneNumber,
+          entity.creationDate,
+          entity.email,
+          entity.mostRecentProceedingId,
+          entity.mostRecentProceedingDate,
+          entity.mostRecentProceedingAfterPhotoUrl
+        );
+
+        customers.push(customer);
+      }
+    });
+
+    customers = customers.slice(startIndex, endIndex);
+
+    const totalCustomers = customers.length;
+
+    if (startIndex > 0) {
+      previous = {
+        pageNumber: pageNumber - 1,
+        limit: limit,
+      };
+    }
 
     if (endIndex < totalCustomers) {
       next = {
@@ -140,104 +164,183 @@ export const GetCustomers = async (
       };
     }
 
-    customerDocuments = customerName
-      ? await CustomersRepository.find({
-          userId: userId,
-          customerId: { $in: customersIds },
-          customerName: { $regex: customerName, $options: "i" },
-        })
-          .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-          .skip(startIndex)
-          .limit(limit)
-          .exec()
-      : await CustomersRepository.find({
-          userId: userId,
-          customerId: { $in: customersIds },
-        })
-          .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-          .skip(startIndex)
-          .limit(limit)
-          .exec();
-  } else {
-    if (customerName) {
-      totalCustomers = await CustomersRepository.countDocuments({
-        userId: userId,
-        customerName: { $regex: customerName, $options: "i" },
-      }).exec();
-
-      if (endIndex < totalCustomers) {
-        next = {
-          pageNumber: pageNumber + 1,
-          limit: limit,
-        };
-      }
-
-      customerDocuments = await CustomersRepository.find({
-        userId: userId,
-        customerName: { $regex: customerName, $options: "i" },
-      })
-        .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-        .skip(startIndex)
-        .limit(limit)
-        .exec();
-    } else {
-      totalCustomers = await CustomersRepository.countDocuments({
-        userId: userId,
-      }).exec();
-
-      if (endIndex < totalCustomers) {
-        next = {
-          pageNumber: pageNumber + 1,
-          limit: limit,
-        };
-      }
-
-      customerDocuments = await CustomersRepository.find({
-        userId: userId,
-      })
-        .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-        .skip(startIndex)
-        .limit(limit)
-        .exec();
-    }
-  }
-
-  const response = new GetCustomersResponse(
-    userId,
-    totalCustomers,
-    previous,
-    next
-  );
-
-  let customers: GetCustomer[] = [];
-
-  customerDocuments.forEach((entity) => {
-    const customer: GetCustomer = new GetCustomer(
-      entity.userId,
-      entity.customerId,
-      entity.customerName,
-      entity.phoneNumber,
-      entity.creationDate,
-      entity.email,
-      entity.mostRecentProceedingId,
-      entity.mostRecentProceedingDate,
-      entity.mostRecentProceedingAfterPhotoUrl
+    const response = new GetCustomersResponse(
+      userId,
+      totalCustomers,
+      previous,
+      next
     );
 
-    customers.push(customer);
-  });
+    response.customers = customers.sort(function (a, b) {
+      if (a.customerName < b.customerName) {
+        return -1;
+      }
+      if (a.customerName > b.customerName) {
+        return 1;
+      }
+      return 0;
+    });
 
-  response.customers = customers.sort(function (a, b) {
-    if (a.customerName < b.customerName) {
-      return -1;
-    }
-    if (a.customerName > b.customerName) {
-      return 1;
-    }
-    return 0;
-  });
+    return response;
+  } else {
+    let totalCustomers = await CustomersRepository.countDocuments(
+      filter
+    ).exec();
 
-  return response;
+    let customerDocuments = await CustomersRepository.find(filter)
+      .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+      .skip(startIndex)
+      .limit(limit)
+      .exec();
+
+    if (startIndex > 0) {
+      previous = {
+        pageNumber: pageNumber - 1,
+        limit: limit,
+      };
+    }
+
+    if (endIndex < totalCustomers) {
+      next = {
+        pageNumber: pageNumber + 1,
+        limit: limit,
+      };
+    }
+
+    const response = new GetCustomersResponse(
+      userId,
+      totalCustomers,
+      previous,
+      next
+    );
+
+    let customers: GetCustomer[] = [];
+
+    customerDocuments.forEach((entity) => {
+      const customer: GetCustomer = new GetCustomer(
+        entity.userId,
+        entity.customerId,
+        entity.customerName,
+        entity.phoneNumber,
+        entity.creationDate,
+        entity.email,
+        entity.mostRecentProceedingId,
+        entity.mostRecentProceedingDate,
+        entity.mostRecentProceedingAfterPhotoUrl
+      );
+
+      customers.push(customer);
+    });
+
+    response.customers = customers.sort(function (a, b) {
+      if (a.customerName < b.customerName) {
+        return -1;
+      }
+      if (a.customerName > b.customerName) {
+        return 1;
+      }
+      return 0;
+    });
+
+    return response;
+  }
+
+  // let customerDocuments: any[] = [];
+  // if (startDate || endDate || serviceTypeId) {
+  //   let filterProceedings: Filter = {
+  //     userId: userId,
+  //   };
+  //   if (startDate && endDate) {
+  //     filterProceedings.date = { $gte: startDate, $lte: endDate };
+  //   }
+  //   if (serviceTypeId) {
+  //     filterProceedings.serviceTypeId = serviceTypeId;
+  //   }
+
+  //   const proceedingDocuments = await ServicesRepository.find(
+  //     filterProceedings
+  //   );
+  //   const customersIds = proceedingDocuments.map((p) => p.customerId);
+
+  //   totalCustomers = customerName
+  //     ? await CustomersRepository.countDocuments({
+  //         userId: userId,
+  //         customerId: { $in: customersIds },
+  //         customerName: { $regex: customerName, $options: "i" },
+  //       }).exec()
+  //     : await CustomersRepository.countDocuments({
+  //         userId: userId,
+  //         customerId: { $in: customersIds },
+  //       }).exec();
+
+  //   if (endIndex < totalCustomers) {
+  //     next = {
+  //       pageNumber: pageNumber + 1,
+  //       limit: limit,
+  //     };
+  //   }
+
+  //   customerDocuments = customerName
+  //     ? await CustomersRepository.find({
+  //         userId: userId,
+  //         customerId: { $in: customersIds },
+  //         customerName: { $regex: customerName, $options: "i" },
+  //       })
+  //         .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+  //         .skip(startIndex)
+  //         .limit(limit)
+  //         .exec()
+  //     : await CustomersRepository.find({
+  //         userId: userId,
+  //         customerId: { $in: customersIds },
+  //       })
+  //         .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+  //         .skip(startIndex)
+  //         .limit(limit)
+  //         .exec();
+  // } else {
+  //   if (customerName) {
+  //     totalCustomers = await CustomersRepository.countDocuments({
+  //       userId: userId,
+  //       customerName: { $regex: customerName, $options: "i" },
+  //     }).exec();
+
+  //     if (endIndex < totalCustomers) {
+  //       next = {
+  //         pageNumber: pageNumber + 1,
+  //         limit: limit,
+  //       };
+  //     }
+
+  //     customerDocuments = await CustomersRepository.find({
+  //       userId: userId,
+  //       customerName: { $regex: customerName, $options: "i" },
+  //     })
+  //       .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+  //       .skip(startIndex)
+  //       .limit(limit)
+  //       .exec();
+  //   } else {
+  //     totalCustomers = await CustomersRepository.countDocuments({
+  //       userId: userId,
+  //     }).exec();
+
+  //     if (endIndex < totalCustomers) {
+  //       next = {
+  //         pageNumber: pageNumber + 1,
+  //         limit: limit,
+  //       };
+  //     }
+
+  //     customerDocuments = await CustomersRepository.find({
+  //       userId: userId,
+  //     })
+  //       .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+  //       .skip(startIndex)
+  //       .limit(limit)
+  //       .exec();
+  //   }
+  //}
 };
 
 export const GetCustomerById = async (
