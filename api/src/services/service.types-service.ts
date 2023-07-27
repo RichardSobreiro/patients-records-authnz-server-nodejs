@@ -7,10 +7,10 @@ import {
   GetServiceTypeResponse,
   GetServiceTypesResponse,
 } from "../models/customers/services/service-types/GetServiceTypesResponse";
-
-import { v4 as uuidv4 } from "uuid";
 import { UpdateServiceTypeRequest } from "../models/customers/services/service-types/UpdateServiceTypeRequest";
 import { UpdateServiceTypeResponse } from "../models/customers/services/service-types/UpdateServiceTypeResponse";
+
+import { v4 as uuidv4 } from "uuid";
 
 export const CreateServiceType = async (
   userId: string,

@@ -85,7 +85,7 @@ export const GetCustomers = async (
   customerName?: string,
   lastServiceStartDate?: Date,
   lastServiceEndDate?: Date,
-  serviceTypeIds?: string[],
+  serviceTypeIdsParam?: string[],
   limitParam?: string
 ): Promise<GetCustomersResponse> => {
   const pageNumber = (parseInt(pageNumberParam) || 1) - 1;
@@ -96,9 +96,6 @@ export const GetCustomers = async (
   if (customerName && customerName !== "") {
     filter.customerName = { $regex: customerName, $options: "i" };
   }
-  if (serviceTypeIds && serviceTypeIds.length > 0) {
-    filter.serviceTypeIds = { $all: serviceTypeIds };
-  }
 
   const startIndex = pageNumber * limit;
   const endIndex = (pageNumber + 1) * limit;
@@ -107,21 +104,61 @@ export const GetCustomers = async (
   let next: ListPage | undefined = undefined;
 
   const filterCustomersServices: any = {};
-  if (lastServiceStartDate && lastServiceEndDate) {
-    const customerDocuments = await CustomersRepository.find(filter).exec();
+  if (
+    (lastServiceStartDate && lastServiceEndDate) ||
+    (serviceTypeIdsParam && serviceTypeIdsParam.length > 0)
+  ) {
+    const customerDocuments = await CustomersRepository.find(filter)
+      .sort({ customerName: 1 })
+      .exec();
 
     filterCustomersServices.userId = userId;
     filterCustomersServices.customerId = {
       $in: customerDocuments.map((doc) => doc.customerId),
     };
-    filterCustomersServices.date = {
-      $gte: lastServiceStartDate,
-      $lte: lastServiceEndDate,
-    };
 
-    const customersServicesDocuments = await ServicesRepository.find(
-      filterCustomersServices
-    );
+    const startDateObject = new Date(lastServiceStartDate!);
+    const endDateObject = new Date(lastServiceEndDate!);
+
+    let customersServicesDocuments: any = {};
+    if (serviceTypeIdsParam && serviceTypeIdsParam.length > 0) {
+      let match: any = {
+        userId: userId,
+        customerId: {
+          $in: customerDocuments.map((doc) => doc.customerId),
+        },
+        $or: [
+          {
+            serviceTypeIds: serviceTypeIdsParam,
+          },
+        ],
+      };
+
+      customersServicesDocuments = await ServicesRepository.aggregate([
+        {
+          $match: match,
+        },
+        {
+          $match: {
+            date: {
+              $gte: startDateObject,
+              $lte: endDateObject,
+            },
+          },
+        },
+      ]);
+    } else {
+      if (lastServiceStartDate && lastServiceEndDate) {
+        filterCustomersServices.date = {
+          $gte: lastServiceStartDate,
+          $lte: lastServiceEndDate,
+        };
+      }
+
+      customersServicesDocuments = await ServicesRepository.find(
+        filterCustomersServices
+      );
+    }
 
     let customers: GetCustomer[] = [];
 
@@ -135,6 +172,7 @@ export const GetCustomers = async (
           entity.customerId,
           entity.customerName,
           entity.phoneNumber,
+          entity.birthDate,
           entity.creationDate,
           entity.email,
           entity.mostRecentProceedingId,
@@ -188,7 +226,7 @@ export const GetCustomers = async (
     ).exec();
 
     let customerDocuments = await CustomersRepository.find(filter)
-      .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
+      .sort({ customerName: 1 })
       .skip(startIndex)
       .limit(limit)
       .exec();
@@ -222,6 +260,7 @@ export const GetCustomers = async (
         entity.customerId,
         entity.customerName,
         entity.phoneNumber,
+        entity.birthDate,
         entity.creationDate,
         entity.email,
         entity.mostRecentProceedingId,
@@ -244,103 +283,6 @@ export const GetCustomers = async (
 
     return response;
   }
-
-  // let customerDocuments: any[] = [];
-  // if (startDate || endDate || serviceTypeId) {
-  //   let filterProceedings: Filter = {
-  //     userId: userId,
-  //   };
-  //   if (startDate && endDate) {
-  //     filterProceedings.date = { $gte: startDate, $lte: endDate };
-  //   }
-  //   if (serviceTypeId) {
-  //     filterProceedings.serviceTypeId = serviceTypeId;
-  //   }
-
-  //   const proceedingDocuments = await ServicesRepository.find(
-  //     filterProceedings
-  //   );
-  //   const customersIds = proceedingDocuments.map((p) => p.customerId);
-
-  //   totalCustomers = customerName
-  //     ? await CustomersRepository.countDocuments({
-  //         userId: userId,
-  //         customerId: { $in: customersIds },
-  //         customerName: { $regex: customerName, $options: "i" },
-  //       }).exec()
-  //     : await CustomersRepository.countDocuments({
-  //         userId: userId,
-  //         customerId: { $in: customersIds },
-  //       }).exec();
-
-  //   if (endIndex < totalCustomers) {
-  //     next = {
-  //       pageNumber: pageNumber + 1,
-  //       limit: limit,
-  //     };
-  //   }
-
-  //   customerDocuments = customerName
-  //     ? await CustomersRepository.find({
-  //         userId: userId,
-  //         customerId: { $in: customersIds },
-  //         customerName: { $regex: customerName, $options: "i" },
-  //       })
-  //         .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-  //         .skip(startIndex)
-  //         .limit(limit)
-  //         .exec()
-  //     : await CustomersRepository.find({
-  //         userId: userId,
-  //         customerId: { $in: customersIds },
-  //       })
-  //         .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-  //         .skip(startIndex)
-  //         .limit(limit)
-  //         .exec();
-  // } else {
-  //   if (customerName) {
-  //     totalCustomers = await CustomersRepository.countDocuments({
-  //       userId: userId,
-  //       customerName: { $regex: customerName, $options: "i" },
-  //     }).exec();
-
-  //     if (endIndex < totalCustomers) {
-  //       next = {
-  //         pageNumber: pageNumber + 1,
-  //         limit: limit,
-  //       };
-  //     }
-
-  //     customerDocuments = await CustomersRepository.find({
-  //       userId: userId,
-  //       customerName: { $regex: customerName, $options: "i" },
-  //     })
-  //       .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-  //       .skip(startIndex)
-  //       .limit(limit)
-  //       .exec();
-  //   } else {
-  //     totalCustomers = await CustomersRepository.countDocuments({
-  //       userId: userId,
-  //     }).exec();
-
-  //     if (endIndex < totalCustomers) {
-  //       next = {
-  //         pageNumber: pageNumber + 1,
-  //         limit: limit,
-  //       };
-  //     }
-
-  //     customerDocuments = await CustomersRepository.find({
-  //       userId: userId,
-  //     })
-  //       .sort({ mostRecentProceedingDate: -1, creationDate: -1 })
-  //       .skip(startIndex)
-  //       .limit(limit)
-  //       .exec();
-  //   }
-  //}
 };
 
 export const GetCustomerById = async (

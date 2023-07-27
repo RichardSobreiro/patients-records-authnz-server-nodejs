@@ -7,6 +7,7 @@ import servicesController from "../controllers/services.controller";
 import { authenticate, authorize } from "../middlewares/auth.middleware";
 import anamnesisController from "../controllers/anamnesis.controller";
 import serviceTypesController from "../controllers/service-types.controller";
+import anamnesisTypesController from "../controllers/anamnesis-types.controller";
 
 const upload = multer();
 
@@ -15,6 +16,13 @@ export default () => {
 
   const { pi, createCustomer, getCustomers, getCustomerById, updateCustomer } =
     customersController();
+
+  const {
+    createAnamnesisType,
+    getAnamnesisTypeById,
+    getAnamnesisTypeList,
+    updateAnamnesisType,
+  } = anamnesisTypesController();
 
   const {
     createAnamnesis,
@@ -30,13 +38,28 @@ export default () => {
     servicesController();
 
   //------------------------------------------------------------------------------------------------------
+  // Customers
   router.get("/pi", authenticate, authorize("api:read"), pi);
   router.post("/customers", authenticate, createCustomer);
   router.put("/customers/:customerId", authenticate, updateCustomer);
   router.get("/customers", authenticate, getCustomers);
   router.get("/customers/:customerId", authenticate, getCustomerById);
   //------------------------------------------------------------------------------------------------------
-  // ANAMNESIS
+  // Anamnesis Types
+  router.post("/customers/anamnesis/types", authenticate, createAnamnesisType);
+  router.get(
+    "/customers/anamnesis/types/:anamnesisTypeId",
+    authenticate,
+    getAnamnesisTypeById
+  );
+  router.get("/customers/anamnesis/types", authenticate, getAnamnesisTypeList);
+  router.put(
+    "/customers/anamnesis/types/:anamnesisTypeId",
+    authenticate,
+    updateAnamnesisType
+  );
+  //------------------------------------------------------------------------------------------------------
+  // Anamnesis
   router.post(
     "/customers/:customerId/anamnesis",
     authenticate,
@@ -67,6 +90,7 @@ export default () => {
     updateServiceType
   );
   //------------------------------------------------------------------------------------------------------
+  // Services
   router.post(
     "/customers/:customerId/services",
     authenticate,
