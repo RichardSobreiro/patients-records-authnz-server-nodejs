@@ -1,13 +1,14 @@
 /** @format */
 
 import mongoose, { Schema } from "mongoose";
+import { CreateAnamnesisTypeContentRequest } from "../../models/customers/CreateAnamneseRequest";
 
 interface Anamnese {
   anamneseId: string;
   customerId: string;
   creationDate: Date;
   date: Date;
-  type: string[];
+  anamnesisTypesContent: CreateAnamnesisTypeContentRequest[];
   freeTypeText?: string;
   gender?: string;
   ethnicity?: string;
@@ -36,10 +37,27 @@ const AnamneseSchema = new Schema({
     type: Date,
     required: true,
   },
-  type: {
-    type: [String],
-    required: true,
-  },
+  anamnesisTypesContent: [
+    {
+      anamnesisTypeId: {
+        type: String,
+        required: true,
+        unique: true,
+        index: true,
+      },
+      anamnesisTypeDescription: {
+        type: String,
+        required: true,
+      },
+      isDefault: {
+        type: Boolean,
+        required: true,
+      },
+      content: {
+        type: String,
+      },
+    },
+  ],
   freeTypeText: {
     type: String,
     required: false,
