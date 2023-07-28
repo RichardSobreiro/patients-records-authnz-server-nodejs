@@ -57,12 +57,6 @@ export const CreateAnamnesis = async (
   }
 };
 
-type Filter = {
-  customerId: any;
-  date?: any;
-  anamnesisTypes?: any;
-};
-
 export const GetAnamnesisListAsync = async (
   userId: string,
   pageNumberParam: string,
@@ -180,34 +174,13 @@ export const GetAnamnesisById = async (
     anamneseId: anamneseId,
   });
 
-  const anamneseTypeIds = [
-    ...new Set(
-      anamnesisDocument
-        .map((document) =>
-          document.anamnesisTypesContent.map(
-            (anamneseTypeDocument) => anamneseTypeDocument.anamnesisTypeId
-          )
-        )
-        .flat(1)
-    ),
-  ];
-
-  const anamneseTypeDocuments = await AnamnesisTypeRepository.find({
-    anamnesisTypeId: { $in: anamneseTypeIds },
-  });
-
-  const anamneseTypesDescriptions = anamneseTypeDocuments.map(
-    (entityAnamneseTypeDocument) =>
-      entityAnamneseTypeDocument.anamnesisTypeDescription
-  );
-
   if (anamnesisDocument && anamnesisDocument.length == 1) {
     return new GetAnamnesisByIdResponse(
       anamnesisDocument[0].anamneseId,
       anamnesisDocument[0].customerId,
       anamnesisDocument[0].creationDate,
       anamnesisDocument[0].date,
-      anamneseTypesDescriptions,
+      anamnesisDocument[0].anamnesisTypesContent,
       anamnesisDocument[0].freeTypeText,
       anamnesisDocument[0].gender,
       anamnesisDocument[0].ethnicity,
@@ -231,7 +204,7 @@ export const UpdateAnamnesis = async (
         anamneseId: request.anamneseId,
         customerId: request.customerId,
         date: request.date,
-        type: request.type,
+        anamnesisTypesContent: request.anamnesisTypesContent,
         freeTypeText: request.freeTypeText,
         gender: request.gender,
         ethnicity: request.ethnicity,
@@ -245,7 +218,7 @@ export const UpdateAnamnesis = async (
       request.anamneseId,
       request.customerId,
       request.date,
-      request.type,
+      request.anamnesisTypesContent,
       request.freeTypeText,
       request.gender,
       request.ethnicity,
