@@ -1,21 +1,37 @@
 /** @format */
 
 import { Middleware } from "koa";
-import { CreateAnamneseRequest } from "../models/customers/CreateAnamneseRequest";
+import {
+  CreateAnamneseRequest,
+  CreateAnamnesisTypeContentRequest,
+} from "../models/customers/CreateAnamneseRequest";
 import {
   CreateAnamnesis,
   GetAnamnesisById,
   GetAnamnesisListAsync,
   UpdateAnamnesis,
 } from "../services/anamnesis-service";
-import { UpdateAnamnesisRequest } from "../models/customers/UpdateAnamnesisRequest";
+import {
+  UpdateAnamnesisRequest,
+  UpdateAnamnesisTypeContentRequest,
+} from "../models/customers/UpdateAnamnesisRequest";
+
+interface MulterRequest extends Request {
+  files: any;
+}
 
 export default (): { [key: string]: Middleware } => ({
   createAnamnesis: async (ctx) => {
     try {
       const userEmail = ctx.state.session.sub as string;
       const requestBody = ctx.request.body as CreateAnamneseRequest;
-      const responseBody = await CreateAnamnesis(userEmail, requestBody);
+      requestBody.anamnesisTypesContent = JSON.parse(
+        (ctx.request.body! as any).anamnesisTypesContent
+      ) as CreateAnamnesisTypeContentRequest[];
+      const files = (ctx.request as unknown as MulterRequest).files;
+
+      const responseBody = await CreateAnamnesis(userEmail, requestBody, files);
+
       ctx.status = 201;
       ctx.message = "Created";
       ctx.response.body = JSON.stringify(responseBody);
@@ -27,7 +43,13 @@ export default (): { [key: string]: Middleware } => ({
     try {
       const userEmail = ctx.state.session.sub as string;
       const requestBody = ctx.request.body as UpdateAnamnesisRequest;
-      const responseBody = await UpdateAnamnesis(userEmail, requestBody);
+      requestBody.anamnesisTypesContent = JSON.parse(
+        (ctx.request.body! as any).anamnesisTypesContent
+      ) as UpdateAnamnesisTypeContentRequest[];
+      const files = (ctx.request as unknown as MulterRequest).files;
+
+      const responseBody = await UpdateAnamnesis(userEmail, requestBody, files);
+
       ctx.status = 200;
       ctx.message = "Ok";
       ctx.response.body = JSON.stringify(responseBody);
@@ -42,7 +64,7 @@ export default (): { [key: string]: Middleware } => ({
       const customerId = ctx.query.customerId as string;
       const startDate = ctx.query.startDate as unknown as Date;
       const endDate = ctx.query.endDate as unknown as Date;
-      const anamnesisType = ctx.query.anamnesisType as string;
+      const anamnesisTypeIds = ctx.query.anamnesisTypeIds as string[];
       const limit = ctx.query.limit as string;
 
       const responseBody = await GetAnamnesisListAsync(
@@ -51,7 +73,7 @@ export default (): { [key: string]: Middleware } => ({
         customerId,
         startDate,
         endDate,
-        anamnesisType,
+        anamnesisTypeIds,
         limit
       );
 

@@ -1,11 +1,27 @@
 /** @format */
 
+export class CreateAnamnesisTypeFileRequest {
+  constructor(
+    public fileId: string,
+    public creationDate: Date,
+    public mimeType: string,
+    public fileType: string,
+    public contentEncoding: string,
+    public filename: string,
+    public originalName: string,
+    public baseUrl: string,
+    public sasToken: string,
+    public sasTokenExpiresOn: Date | undefined
+  ) {}
+}
+
 export class CreateAnamnesisTypeContentRequest {
   constructor(
     public anamnesisTypeId: string,
     public anamnesisTypeDescription: string,
     public isDefault: boolean,
-    public content?: string | null
+    public content?: string | null,
+    public files?: CreateAnamnesisTypeFileRequest[] | null
   ) {}
 }
 

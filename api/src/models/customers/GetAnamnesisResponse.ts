@@ -6,7 +6,7 @@ export class GetAnamnesis {
     public customerId: string,
     public creationDate: Date,
     public date: Date,
-    public type: string[]
+    public anamnesisTypeDescriptions: string[]
   ) {}
 }
 

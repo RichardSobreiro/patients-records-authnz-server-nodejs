@@ -4,7 +4,7 @@ import { CreateServiceRequest } from "../models/customers/services/CreateService
 import { createService } from "../services/create.service-service";
 import { getServiceById, getServices } from "../services/get.services-service";
 import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
-import { updateService } from "../services/update.proceedings-service";
+import { updateService } from "../services/update.services-service";
 import { GetServiceTypeResponse } from "../models/customers/services/service-types/GetServiceTypesResponse";
 
 interface MulterRequest extends Request {

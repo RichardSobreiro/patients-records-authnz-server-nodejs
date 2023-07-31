@@ -1,27 +1,58 @@
 /** @format */
 
-import { CreateAnamneseRequest } from "../models/customers/CreateAnamneseRequest";
+import {
+  CreateAnamneseRequest,
+  CreateAnamnesisTypeFileRequest,
+} from "../models/customers/CreateAnamneseRequest";
 import { CreateAnamneseResponse } from "../models/customers/CreateAnamneseResponse";
-import { AnamneseRepository } from "../db/models/AnamneseRepository";
+import { Anamnese, AnamneseRepository } from "../db/models/AnamneseRepository";
 import {
   GetAnamnesis,
   GetAnamnesisResponse,
   ListPage,
 } from "../models/customers/GetAnamnesisResponse";
 import { GetAnamnesisByIdResponse } from "../models/customers/GetAnamnesisByIdResponse";
-import { UpdateAnamnesisRequest } from "../models/customers/UpdateAnamnesisRequest";
+import {
+  UpdateAnamnesisRequest,
+  UpdateAnamnesisTypeFileRequest,
+} from "../models/customers/UpdateAnamnesisRequest";
 import { UpdateAnamnesisResponse } from "../models/customers/UpdateAnamnesisResponse";
 
 import { v4 as uuidv4 } from "uuid";
 import { AnamnesisTypeRepository } from "../db/models/AnamnesisTypesRepository";
+import {
+  createBlobClient,
+  createBlobSas,
+  createContainerClient,
+  getBaseBlobURL,
+} from "./azure/azure.storage.account";
 
 export const CreateAnamnesis = async (
   userEmail: string,
-  request: CreateAnamneseRequest
+  request: CreateAnamneseRequest,
+  files?: any
 ): Promise<CreateAnamneseResponse> => {
   const anamneseId = uuidv4();
   let anamnesisResponse: CreateAnamneseResponse | undefined = undefined;
+  let filesRequests: CreateAnamnesisTypeFileRequest[] | undefined = undefined;
+  const containerClient = await createContainerClient(userEmail);
+  containerClient.createIfNotExists();
+
   try {
+    if (files && files["files"] && files["files"].length > 0) {
+      filesRequests = await uploadFilesToStorageProvider(
+        files,
+        userEmail,
+        containerClient
+      );
+    }
+
+    request.anamnesisTypesContent.forEach((typeContent) => {
+      if (typeContent.anamnesisTypeDescription === "Arquivo") {
+        typeContent.files = filesRequests;
+      }
+    });
+
     const anamneseDocument = await AnamneseRepository.insertMany({
       anamneseId: anamneseId,
       customerId: request.customerId,
@@ -53,6 +84,10 @@ export const CreateAnamnesis = async (
     return anamnesisResponse;
   } catch (error: any) {
     await AnamneseRepository.deleteMany({ anamneseId: anamneseId });
+    if (filesRequests && filesRequests.length > 0) {
+      for (const fileRequest of filesRequests)
+        await containerClient.deleteBlob(fileRequest.filename);
+    }
     throw error;
   }
 };
@@ -63,7 +98,7 @@ export const GetAnamnesisListAsync = async (
   customerId: string,
   startDate?: Date,
   endDate?: Date,
-  anamnesisType?: string,
+  anamnesisTypeIds?: string[],
   limitParam?: string
 ): Promise<GetAnamnesisResponse> => {
   const pageNumber = (parseInt(pageNumberParam) || 1) - 1;
@@ -75,8 +110,16 @@ export const GetAnamnesisListAsync = async (
   if (startDate && endDate) {
     filter.date = { $gte: startDate, $lte: endDate };
   }
-  if (anamnesisType) {
-    filter.type = { $all: [anamnesisType] };
+  if (anamnesisTypeIds) {
+    filter.anamnesisTypesContent = {
+      $elemMatch: {
+        anamnesisTypeId: {
+          $in: Array.isArray(anamnesisTypeIds)
+            ? anamnesisTypeIds
+            : [anamnesisTypeIds],
+        },
+      },
+    };
   }
 
   const startIndex = pageNumber * limit;
@@ -175,7 +218,7 @@ export const GetAnamnesisById = async (
   });
 
   if (anamnesisDocument && anamnesisDocument.length == 1) {
-    return new GetAnamnesisByIdResponse(
+    const response = new GetAnamnesisByIdResponse(
       anamnesisDocument[0].anamneseId,
       anamnesisDocument[0].customerId,
       anamnesisDocument[0].creationDate,
@@ -188,6 +231,44 @@ export const GetAnamnesisById = async (
       anamnesisDocument[0].employmentStatus,
       anamnesisDocument[0].comments
     );
+
+    const thresholdDateTime = new Date();
+    thresholdDateTime.setHours(thresholdDateTime.getHours() - 1);
+
+    const anamnesisTypeFileContent = response.anamnesisTypesContent.find(
+      (typeContent) => typeContent.anamnesisTypeDescription === "Arquivo"
+    );
+
+    if (anamnesisTypeFileContent && anamnesisTypeFileContent.files) {
+      for (const file of anamnesisTypeFileContent.files) {
+        if (
+          file.sasTokenExpiresOn ||
+          (file.sasTokenExpiresOn !== undefined &&
+            (file.sasTokenExpiresOn as Date) < thresholdDateTime)
+        ) {
+          const sasToken = await createBlobSas(userEmail, file.filename);
+          file.sasToken = sasToken.sasToken;
+          file.sasTokenExpiresOn = sasToken.expiresOn!;
+          await AnamneseRepository.findOneAndUpdate(
+            {
+              customerId: customerId,
+              anamneseId: anamneseId,
+              "anamnesisTypesContent.files.fileId": file.fileId,
+            },
+            {
+              $set: {
+                "anamnesisTypesContent.$[].files.$[].sasToken":
+                  sasToken.sasToken,
+                "anamnesisTypesContent.$[].files.$[].sasTokenExpiresOn":
+                  sasToken.expiresOn,
+              },
+            }
+          );
+        }
+      }
+    }
+
+    return response;
   } else {
     throw new Error("Not found");
   }
@@ -195,10 +276,84 @@ export const GetAnamnesisById = async (
 
 export const UpdateAnamnesis = async (
   userEmail: string,
-  request: UpdateAnamnesisRequest
+  request: UpdateAnamnesisRequest,
+  filesFromClient?: any
 ): Promise<UpdateAnamnesisResponse> => {
+  let anamnesisResponse: UpdateAnamnesisResponse | undefined = undefined;
+  let updatedFilesRequests: UpdateAnamnesisTypeFileRequest[] | undefined =
+    undefined;
+  const containerClient = await createContainerClient(userEmail);
+  containerClient.createIfNotExists();
   try {
-    const anamneseDocument = await AnamneseRepository.findOneAndUpdate(
+    const oldAnamnesisDocument = await AnamneseRepository.find({
+      customerId: request.customerId,
+      anamneseId: request.anamneseId,
+    });
+
+    let existingAnamnese = oldAnamnesisDocument as unknown as Anamnese;
+
+    const existingAnamnesisTypeFileContent =
+      existingAnamnese.anamnesisTypesContent.find(
+        (typeContent) => typeContent.anamnesisTypeDescription === "Arquivo"
+      );
+
+    const existingFiles = existingAnamnesisTypeFileContent?.files;
+
+    if (filesFromClient && filesFromClient.length > 0) {
+      updatedFilesRequests = [];
+      for (const fileFromClient of filesFromClient) {
+        const existingFileDocument =
+          existingFiles &&
+          existingFiles.find(
+            (existingFile) => existingFile.fileId === fileFromClient.fileId
+          );
+        if (!existingFileDocument) {
+          const createdPhoto = await uploadFileToStorageProvider(
+            fileFromClient,
+            userEmail,
+            containerClient
+          );
+          updatedFilesRequests.push(createdPhoto);
+        } else {
+          const existingFileResponse =
+            existingFileDocument as UpdateAnamnesisTypeFileRequest;
+          updatedFilesRequests.push(existingFileResponse);
+        }
+      }
+      if (existingFiles) {
+        for (const existingFile of existingFiles) {
+          const deletedFile = filesFromClient.find(
+            (fileFromClient) =>
+              fileFromClient.originalname === existingFile.fileId
+          );
+          if (!deletedFile) {
+            await containerClient.deleteBlob(existingFile.filename);
+          }
+        }
+      }
+    } else if (
+      (!filesFromClient || filesFromClient.length === 0) &&
+      existingFiles
+    ) {
+      for (const existingFile of existingFiles) {
+        const deletedFile = filesFromClient.find(
+          (fileFromClient) =>
+            fileFromClient.originalname === existingFile.fileId
+        );
+        if (!deletedFile) {
+          await containerClient.deleteBlob(existingFile.filename);
+        }
+      }
+      updatedFilesRequests = undefined;
+    }
+
+    request.anamnesisTypesContent.forEach((typeContent) => {
+      if (typeContent.anamnesisTypeDescription === "Arquivo") {
+        typeContent.files = updatedFilesRequests;
+      }
+    });
+
+    await AnamneseRepository.findOneAndUpdate(
       { customerId: request.customerId, anamneseId: request.anamneseId },
       {
         anamneseId: request.anamneseId,
@@ -229,4 +384,64 @@ export const UpdateAnamnesis = async (
   } catch (error: any) {
     throw error;
   }
+};
+
+const uploadFilesToStorageProvider = async (
+  files: any[],
+  userEmail: string,
+  containerClient: any
+) => {
+  const filesRequests: CreateAnamnesisTypeFileRequest[] = [];
+  const filesFromAnamenesisType = files["files"];
+  for (const file of filesFromAnamenesisType) {
+    const newFile = await uploadFileToStorageProvider(
+      file,
+      userEmail,
+      containerClient
+    );
+
+    filesRequests.push(newFile);
+
+    return filesRequests;
+  }
+};
+
+const uploadFileToStorageProvider = async (
+  file: any,
+  userEmail: string,
+  containerClient: any
+) => {
+  const fileType = file.mimetype.slice(file.mimetype.indexOf("/") + 1);
+  const fileId = uuidv4();
+  const filename = `${fileId}.${fileType}`;
+  const originalFileName = file.originalname;
+  const baseUrl = getBaseBlobURL(userEmail, filename);
+
+  const blobClient = await createBlobClient(containerClient, filename);
+
+  const options = {
+    blobHTTPHeaders: {
+      blobContentType: file.mimetype,
+      blobContentEncoding: file.encoding,
+    },
+  };
+
+  await blobClient.uploadData(file.buffer, options);
+
+  const sasToken = await createBlobSas(userEmail, filename);
+
+  const newFile = new CreateAnamnesisTypeFileRequest(
+    fileId,
+    new Date(),
+    file.mimetype,
+    fileType,
+    file.encoding,
+    filename,
+    originalFileName,
+    baseUrl,
+    sasToken.sasToken,
+    sasToken.expiresOn
+  );
+
+  return newFile;
 };

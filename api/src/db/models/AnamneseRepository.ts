@@ -3,7 +3,7 @@
 import mongoose, { Schema } from "mongoose";
 import { CreateAnamnesisTypeContentRequest } from "../../models/customers/CreateAnamneseRequest";
 
-interface Anamnese {
+export interface Anamnese {
   anamneseId: string;
   customerId: string;
   creationDate: Date;
@@ -56,6 +56,52 @@ const AnamneseSchema = new Schema({
       content: {
         type: String,
       },
+      files: [
+        {
+          fileId: {
+            type: String,
+            required: true,
+            unique: true,
+            index: true,
+          },
+          creationDate: {
+            type: Date,
+            required: true,
+          },
+          mimeType: {
+            type: String,
+            required: true,
+          },
+          fileType: {
+            type: String,
+            required: true,
+          },
+          contentEncoding: {
+            type: String,
+            required: true,
+          },
+          filename: {
+            type: String,
+            required: true,
+          },
+          originalName: {
+            type: String,
+            required: true,
+          },
+          baseUrl: {
+            type: String,
+            required: true,
+          },
+          sasToken: {
+            type: String,
+            required: true,
+          },
+          sasTokenExpiresOn: {
+            type: Date,
+            required: true,
+          },
+        },
+      ],
     },
   ],
   freeTypeText: {
