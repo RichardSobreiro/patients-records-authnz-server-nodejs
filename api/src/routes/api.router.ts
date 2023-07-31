@@ -87,6 +87,23 @@ export default () => {
   router.put(
     "/customers/:customerId/anamnesis/:anamnesisId",
     authenticate,
+    upload.fields([
+      {
+        name: "anamneseId",
+      },
+      {
+        name: "customerId",
+      },
+      {
+        name: "date",
+      },
+      {
+        name: "anamnesisTypesContent",
+      },
+      {
+        name: "files",
+      },
+    ]),
     updateAnamnesis
   );
   router.get(

@@ -290,7 +290,8 @@ export const UpdateAnamnesis = async (
       anamneseId: request.anamneseId,
     });
 
-    let existingAnamnese = oldAnamnesisDocument as unknown as Anamnese;
+    let existingAnamnese =
+      oldAnamnesisDocument[0].toObject() as unknown as Anamnese;
 
     const existingAnamnesisTypeFileContent =
       existingAnamnese.anamnesisTypesContent.find(
@@ -336,10 +337,12 @@ export const UpdateAnamnesis = async (
       existingFiles
     ) {
       for (const existingFile of existingFiles) {
-        const deletedFile = filesFromClient.find(
-          (fileFromClient) =>
-            fileFromClient.originalname === existingFile.fileId
-        );
+        const deletedFile =
+          filesFromClient &&
+          filesFromClient.find(
+            (fileFromClient) =>
+              fileFromClient.originalname === existingFile.fileId
+          );
         if (!deletedFile) {
           await containerClient.deleteBlob(existingFile.filename);
         }

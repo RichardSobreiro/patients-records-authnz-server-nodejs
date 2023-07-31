@@ -46,7 +46,7 @@ export default (): { [key: string]: Middleware } => ({
       requestBody.anamnesisTypesContent = JSON.parse(
         (ctx.request.body! as any).anamnesisTypesContent
       ) as UpdateAnamnesisTypeContentRequest[];
-      const files = (ctx.request as unknown as MulterRequest).files;
+      const files = (ctx.request as unknown as MulterRequest).files.files;
 
       const responseBody = await UpdateAnamnesis(userEmail, requestBody, files);
 
