@@ -89,7 +89,7 @@ const AccountSchema = new Schema({
   },
   paymentInfo: {
     type: Object,
-    required: true,
+    required: false,
   },
 });
 
