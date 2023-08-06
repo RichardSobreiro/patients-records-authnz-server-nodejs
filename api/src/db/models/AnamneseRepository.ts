@@ -42,7 +42,6 @@ const AnamneseSchema = new Schema({
       anamnesisTypeId: {
         type: String,
         required: true,
-        unique: true,
         index: true,
       },
       anamnesisTypeDescription: {
@@ -60,45 +59,34 @@ const AnamneseSchema = new Schema({
         {
           fileId: {
             type: String,
-            required: true,
-            unique: true,
             index: true,
           },
           creationDate: {
             type: Date,
-            required: true,
           },
           mimeType: {
             type: String,
-            required: true,
           },
           fileType: {
             type: String,
-            required: true,
           },
           contentEncoding: {
             type: String,
-            required: true,
           },
           filename: {
             type: String,
-            required: true,
           },
           originalName: {
             type: String,
-            required: true,
           },
           baseUrl: {
             type: String,
-            required: true,
           },
           sasToken: {
             type: String,
-            required: true,
           },
           sasTokenExpiresOn: {
             type: Date,
-            required: true,
           },
         },
       ],

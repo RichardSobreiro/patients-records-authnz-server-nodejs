@@ -29,6 +29,7 @@ export const CreateCustomer = async (
       customerId: customerId,
       customerName: request.customerName,
       phoneNumber: request.phoneNumber,
+      birthDate: request.birthDate,
       creationDate: new Date(),
       email: request.email,
     });
