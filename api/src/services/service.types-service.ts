@@ -87,15 +87,15 @@ export const GetServicesTypes = async (
     response.serviceTypes?.push(proceedingType);
   }
 
-  // response.serviceTypes.sort((a, b) => {
-  //   if (!a.isDefault && b.isDefault) {
-  //     return 1;
-  //   } else if (a.isDefault && !b.isDefault) {
-  //     return -1;
-  //   }
+  response.serviceTypes.sort((a, b) => {
+    if (!a.isDefault && b.isDefault) {
+      return -1;
+    } else if (a.isDefault && !b.isDefault) {
+      return 1;
+    }
 
-  //   return a.serviceTypeDescription.localeCompare(b.serviceTypeDescription);
-  // });
+    return a.serviceTypeDescription.localeCompare(b.serviceTypeDescription);
+  });
 
   return response;
 };

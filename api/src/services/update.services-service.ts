@@ -49,20 +49,24 @@ export const updateService = async (
   );
 
   const beforePhotosFromClient = files["beforePhotos"];
-  response.beforePhotos = await processPhotos(
-    "beforePhotos",
-    serviceId,
-    userId,
-    beforePhotosFromClient
-  );
+  if (beforePhotosFromClient && beforePhotosFromClient.length > 0) {
+    response.beforePhotos = await processPhotos(
+      "beforePhotos",
+      serviceId,
+      userId,
+      beforePhotosFromClient
+    );
+  }
 
   const afterPhotosFromClient = files["afterPhotos"];
-  response.afterPhotos = await processPhotos(
-    "afterPhotos",
-    serviceId,
-    userId,
-    afterPhotosFromClient
-  );
+  if (afterPhotosFromClient && afterPhotosFromClient.length > 0) {
+    response.afterPhotos = await processPhotos(
+      "afterPhotos",
+      serviceId,
+      userId,
+      afterPhotosFromClient
+    );
+  }
 
   return response;
 };
@@ -71,7 +75,7 @@ const processPhotos = async (
   photosType: "beforePhotos" | "afterPhotos",
   serviceId: string,
   userId: string,
-  photosFromClient: any
+  photosFromClient: any[]
 ): Promise<UpdateServicePhotosResponse[] | null | undefined> => {
   const containerClient = await createContainerClient(userId);
   const updatedPhotos: UpdateServicePhotosResponse[] | null | undefined = [];

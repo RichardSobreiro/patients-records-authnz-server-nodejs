@@ -122,44 +122,25 @@ export const GetCustomers = async (
     const endDateObject = new Date(lastServiceEndDate!);
 
     let customersServicesDocuments: any = {};
+
     if (serviceTypeIdsParam && serviceTypeIdsParam.length > 0) {
-      let match: any = {
-        userId: userId,
-        customerId: {
-          $in: customerDocuments.map((doc) => doc.customerId),
-        },
-        $or: [
-          {
-            serviceTypeIds: serviceTypeIdsParam,
-          },
-        ],
+      filterCustomersServices.serviceTypeIds = {
+        $in: Array.isArray(serviceTypeIdsParam)
+          ? serviceTypeIdsParam
+          : [serviceTypeIdsParam],
       };
-
-      customersServicesDocuments = await ServicesRepository.aggregate([
-        {
-          $match: match,
-        },
-        {
-          $match: {
-            date: {
-              $gte: startDateObject,
-              $lte: endDateObject,
-            },
-          },
-        },
-      ]);
-    } else {
-      if (lastServiceStartDate && lastServiceEndDate) {
-        filterCustomersServices.date = {
-          $gte: lastServiceStartDate,
-          $lte: lastServiceEndDate,
-        };
-      }
-
-      customersServicesDocuments = await ServicesRepository.find(
-        filterCustomersServices
-      );
     }
+
+    if (lastServiceStartDate && lastServiceEndDate) {
+      filterCustomersServices.date = {
+        $gte: startDateObject,
+        $lte: endDateObject,
+      };
+    }
+
+    customersServicesDocuments = await ServicesRepository.find(
+      filterCustomersServices
+    );
 
     let customers: GetCustomer[] = [];
 
