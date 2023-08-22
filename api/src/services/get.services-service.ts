@@ -81,10 +81,46 @@ export const getServices = async (
   limitParam?: string,
   startDate?: Date,
   endDate?: Date,
-  serviceTypeIds?: string[]
+  serviceTypeIds?: string[],
+  serviceTypeDescription?: string
 ): Promise<GetServicesResponse> => {
   const pageNumber = parseInt(pageNumberParam) - 1 || 0;
   const limit = (limitParam && parseInt(limitParam)) || 12;
+
+  if (serviceTypeDescription) {
+    const serviceTypeByDescriptionDocuments = await ServiceTypeRepository.find({
+      $or: [
+        {
+          userId: userId,
+          serviceTypeDescription: {
+            $regex: serviceTypeDescription,
+            $options: "i",
+          },
+        },
+        {
+          isDefault: true,
+          serviceTypeDescription: {
+            $regex: serviceTypeDescription,
+            $options: "i",
+          },
+        },
+      ],
+    });
+    if (
+      serviceTypeByDescriptionDocuments &&
+      serviceTypeByDescriptionDocuments.length > 0
+    ) {
+      if (serviceTypeIds && serviceTypeIds.length > 0) {
+        serviceTypeIds = serviceTypeIds.concat(
+          serviceTypeByDescriptionDocuments.map((s) => s.serviceTypeId)
+        );
+      } else {
+        serviceTypeIds = serviceTypeByDescriptionDocuments.map(
+          (s) => s.serviceTypeId
+        );
+      }
+    }
+  }
 
   const filter: any = {};
   filter.userId = userId;
@@ -93,7 +129,7 @@ export const getServices = async (
     filter.date = { $gte: startDate, $lte: endDate };
   }
   if (serviceTypeIds && serviceTypeIds.length > 0) {
-    filter.serviceTypeIds = { $all: serviceTypeIds };
+    filter.serviceTypeIds = { $in: serviceTypeIds };
   }
 
   const startIndex = pageNumber * limit;

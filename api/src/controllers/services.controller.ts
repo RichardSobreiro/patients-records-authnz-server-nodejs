@@ -93,6 +93,7 @@ export default (): { [key: string]: Middleware } => ({
       const startDate = ctx.query.startDate as unknown as Date;
       const endDate = ctx.query.endDate as unknown as Date;
       const serviceTypeIds = ctx.query.serviceTypeIds as string[];
+      const serviceTypeDescription = ctx.query.serviceTypeDescription as string;
       const userId = ctx.state.session.sub as string;
 
       const responseBody = await getServices(
@@ -102,7 +103,8 @@ export default (): { [key: string]: Middleware } => ({
         limit,
         startDate,
         endDate,
-        serviceTypeIds
+        serviceTypeIds,
+        serviceTypeDescription
       );
 
       ctx.status = 200;
