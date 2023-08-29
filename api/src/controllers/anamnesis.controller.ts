@@ -55,6 +55,8 @@ export default (): { [key: string]: Middleware } => ({
       ctx.response.body = JSON.stringify(responseBody);
     } catch (e: any) {
       console.log(e);
+      ctx.status = 400;
+      ctx.message = `Message: ${e.message} - Stack: ${e.stack}`;
     }
   },
   getAnamnesisList: async (ctx) => {

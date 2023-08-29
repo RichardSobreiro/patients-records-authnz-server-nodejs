@@ -31,6 +31,7 @@ export class UpdateAnamnesisRequest {
     public customerId: string,
     public date: Date,
     public anamnesisTypesContent: UpdateAnamnesisTypeContentRequest[],
+    public existingFilesIds?: string[],
     public freeTypeText?: string,
     public gender?: string,
     public ethnicity?: string,

@@ -279,7 +279,6 @@ export const UpdateAnamnesis = async (
   request: UpdateAnamnesisRequest,
   filesFromClient?: any
 ): Promise<UpdateAnamnesisResponse> => {
-  let anamnesisResponse: UpdateAnamnesisResponse | undefined = undefined;
   let updatedFilesRequests: UpdateAnamnesisTypeFileRequest[] | undefined =
     undefined;
   const containerClient = await createContainerClient(userEmail);
@@ -300,22 +299,28 @@ export const UpdateAnamnesis = async (
 
     const existingFiles = existingAnamnesisTypeFileContent?.files;
 
+    if (request.existingFilesIds && !Array.isArray(request.existingFilesIds)) {
+      request.existingFilesIds = [request.existingFilesIds];
+    }
+
     if (filesFromClient && filesFromClient.length > 0) {
       updatedFilesRequests = [];
+
       for (const fileFromClient of filesFromClient) {
-        const existingFileDocument =
-          existingFiles &&
-          existingFiles.find(
-            (existingFile) => existingFile.fileId === fileFromClient.fileId
-          );
-        if (!existingFileDocument) {
-          const createdPhoto = await uploadFileToStorageProvider(
+        const existingFileDocumentId = request.existingFilesIds?.find(
+          (existingFileId) => existingFileId === fileFromClient.fileId
+        );
+        if (!existingFileDocumentId) {
+          const createdFile = await uploadFileToStorageProvider(
             fileFromClient,
             userEmail,
             containerClient
           );
-          updatedFilesRequests.push(createdPhoto);
+          updatedFilesRequests.push(createdFile);
         } else {
+          const existingFileDocument = existingFiles?.find(
+            (f) => f.fileId === existingFileDocumentId
+          );
           const existingFileResponse =
             existingFileDocument as UpdateAnamnesisTypeFileRequest;
           updatedFilesRequests.push(existingFileResponse);
@@ -323,12 +328,15 @@ export const UpdateAnamnesis = async (
       }
       if (existingFiles) {
         for (const existingFile of existingFiles) {
-          const deletedFile = filesFromClient.find(
-            (fileFromClient) =>
-              fileFromClient.originalname === existingFile.fileId
+          const deletedFile = request.existingFilesIds?.find(
+            (existingFileId) => existingFileId === existingFile.fileId
           );
           if (!deletedFile) {
             await containerClient.deleteBlob(existingFile.filename);
+          } else {
+            const existingFileResponse =
+              existingFile as UpdateAnamnesisTypeFileRequest;
+            updatedFilesRequests.push(existingFileResponse);
           }
         }
       }
@@ -337,17 +345,20 @@ export const UpdateAnamnesis = async (
       existingFiles
     ) {
       for (const existingFile of existingFiles) {
-        const deletedFile =
-          filesFromClient &&
-          filesFromClient.find(
-            (fileFromClient) =>
-              fileFromClient.originalname === existingFile.fileId
-          );
+        const deletedFile = request.existingFilesIds?.find(
+          (existingFileId) => existingFileId === existingFile.fileId
+        );
         if (!deletedFile) {
           await containerClient.deleteBlob(existingFile.filename);
+        } else {
+          if (!updatedFilesRequests) {
+            updatedFilesRequests = [];
+          }
+          const existingFileResponse =
+            existingFile as UpdateAnamnesisTypeFileRequest;
+          updatedFilesRequests.push(existingFileResponse);
         }
       }
-      updatedFilesRequests = undefined;
     }
 
     request.anamnesisTypesContent.forEach((typeContent) => {
@@ -402,11 +413,9 @@ const uploadFilesToStorageProvider = async (
       userEmail,
       containerClient
     );
-
     filesRequests.push(newFile);
-
-    return filesRequests;
   }
+  return filesRequests;
 };
 
 const uploadFileToStorageProvider = async (
