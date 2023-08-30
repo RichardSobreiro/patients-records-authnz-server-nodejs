@@ -67,6 +67,8 @@ export default (): { [key: string]: Middleware } => ({
       const startDate = ctx.query.startDate as unknown as Date;
       const endDate = ctx.query.endDate as unknown as Date;
       const anamnesisTypeIds = ctx.query.anamnesisTypeIds as string[];
+      const anamnesisTypeDescription = ctx.query
+        .anamnesisTypeDescription as string;
       const limit = ctx.query.limit as string;
 
       const responseBody = await GetAnamnesisListAsync(
@@ -76,6 +78,7 @@ export default (): { [key: string]: Middleware } => ({
         startDate,
         endDate,
         anamnesisTypeIds,
+        anamnesisTypeDescription,
         limit
       );
 

@@ -99,6 +99,7 @@ export const GetAnamnesisListAsync = async (
   startDate?: Date,
   endDate?: Date,
   anamnesisTypeIds?: string[],
+  anamnesisTypeDescription?: string,
   limitParam?: string
 ): Promise<GetAnamnesisResponse> => {
   const pageNumber = (parseInt(pageNumberParam) || 1) - 1;
@@ -120,6 +121,29 @@ export const GetAnamnesisListAsync = async (
         },
       },
     };
+  }
+
+  if (anamnesisTypeDescription) {
+    if (filter.anamnesisTypesContent) {
+      filter.anamnesisTypesContent = {
+        ...filter.anamnesisTypesContent,
+        $elemMatch: {
+          anamnesisTypeDescription: {
+            $regex: anamnesisTypeDescription,
+            $options: "i",
+          },
+        },
+      };
+    } else {
+      filter.anamnesisTypesContent = {
+        $elemMatch: {
+          anamnesisTypeDescription: {
+            $regex: anamnesisTypeDescription,
+            $options: "i",
+          },
+        },
+      };
+    }
   }
 
   const startIndex = pageNumber * limit;
