@@ -103,9 +103,6 @@ export default () => {
       {
         name: "files",
       },
-      {
-        name: "existingFilesIds",
-      },
     ]),
     updateAnamnesis
   );
