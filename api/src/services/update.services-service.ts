@@ -81,6 +81,9 @@ const processPhotos = async (
   });
 
   if (photosFromClient && photosFromClient.length > 0) {
+    if (!Array.isArray(photosFromClient)) {
+      photosFromClient = [photosFromClient];
+    }
     for (const photoFromClient of photosFromClient) {
       const existingPhotoDocument = existingPhotosDocuments.find(
         (document) => document.servicePhotoId === photoFromClient.originalname
@@ -100,48 +103,40 @@ const processPhotos = async (
           existingPhotoDocument.servicePhotoId,
           existingPhotoDocument.servicePhotoType,
           existingPhotoDocument.creationDate,
-          existingPhotoDocument.baseUrl,
+          `${existingPhotoDocument.baseUrl}?${existingPhotoDocument.sasToken}`,
           existingPhotoDocument.sasTokenExpiresOn
         );
         updatedPhotos.push(photo);
       }
     }
+  }
 
-    if (existingPhotosDocuments && existingPhotosDocuments.length > 0) {
-      for (const existingPhotoDocument of existingPhotosDocuments) {
-        const deletedPhoto = existingPhotosIds?.find(
-          (existingPhotosId) =>
-            existingPhotosId === existingPhotoDocument.servicePhotoId
-        );
-        if (!deletedPhoto) {
-          await containerClient.deleteBlob(existingPhotoDocument.filename);
-          await ServicePhotosRepository.deleteMany({
-            serviceId: serviceId,
-            servicePhotoId: existingPhotoDocument.servicePhotoId,
-          });
-        } else {
-          const photo = new UpdateServicePhotosResponse(
-            serviceId,
-            existingPhotoDocument.servicePhotoId,
-            existingPhotoDocument.servicePhotoType,
-            existingPhotoDocument.creationDate,
-            existingPhotoDocument.baseUrl,
-            existingPhotoDocument.sasTokenExpiresOn
-          );
-          updatedPhotos.push(photo);
-        }
-      }
+  if (existingPhotosDocuments && existingPhotosDocuments.length > 0) {
+    if (existingPhotosIds && !Array.isArray(existingPhotosIds)) {
+      existingPhotosIds = [existingPhotosIds];
     }
-  } else if (
-    (!existingPhotosIds || existingPhotosIds.length === 0) &&
-    (!photosFromClient || photosFromClient.length === 0)
-  ) {
-    for (const existingPhoto of existingPhotosDocuments) {
-      await containerClient.deleteBlob(existingPhoto.filename);
-      await ServicePhotosRepository.deleteMany({
-        serviceId: serviceId,
-        servicePhotoId: existingPhoto.servicePhotoId,
-      });
+    for (const existingPhotoDocument of existingPhotosDocuments) {
+      const deletedPhoto = existingPhotosIds?.find(
+        (existingPhotosId) =>
+          existingPhotosId === existingPhotoDocument.servicePhotoId
+      );
+      if (!deletedPhoto) {
+        await containerClient.deleteBlob(existingPhotoDocument.filename);
+        await ServicePhotosRepository.deleteMany({
+          serviceId: serviceId,
+          servicePhotoId: existingPhotoDocument.servicePhotoId,
+        });
+      } else {
+        const photo = new UpdateServicePhotosResponse(
+          serviceId,
+          existingPhotoDocument.servicePhotoId,
+          existingPhotoDocument.servicePhotoType,
+          existingPhotoDocument.creationDate,
+          `${existingPhotoDocument.baseUrl}?${existingPhotoDocument.sasToken}`,
+          existingPhotoDocument.sasTokenExpiresOn
+        );
+        updatedPhotos.push(photo);
+      }
     }
   }
 
