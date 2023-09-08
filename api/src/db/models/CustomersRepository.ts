@@ -5,14 +5,25 @@ import mongoose, { Schema } from "mongoose";
 interface Customer {
   userId: string;
   customerId: string;
-  customerName: string;
-  phoneNumber: string;
-  birthDate: Date;
   creationDate: Date;
-  email?: string;
-  mostRecentProceedingId?: string;
-  mostRecentProceedingDate?: Date;
-  mostRecentProceedingAfterPhotoUrl?: string;
+  customerName: string;
+  birthDate: Date;
+  cpf: string | undefined;
+  gender: string | undefined;
+  maritalStatus: string | undefined;
+  ethnicity: string | undefined;
+  placeOfBirth: string | undefined;
+  occupation: string | undefined;
+  phoneNumber: string;
+  instagramAccount: string | undefined;
+  email: string | undefined;
+  cep: string | undefined;
+  street: string | undefined;
+  number: string | undefined;
+  district: string | undefined;
+  city: string | undefined;
+  complement: string | undefined;
+  state: string | undefined;
 }
 
 const CustomersSchema = new Schema({
@@ -27,33 +38,65 @@ const CustomersSchema = new Schema({
     required: true,
     index: true,
   },
+  creationDate: {
+    type: Date,
+    required: true,
+  },
   customerName: {
     type: String,
     required: true,
     index: true,
   },
-  phoneNumber: {
-    type: String,
-    required: true,
-  },
   birthDate: {
     type: Date,
     required: true,
   },
-  creationDate: {
-    type: Date,
-    required: true,
+  cpf: {
+    type: String,
+  },
+  gender: {
+    type: String,
+  },
+  maritalStatus: {
+    type: String,
+  },
+  ethnicity: {
+    type: String,
+  },
+  placeOfBirth: {
+    type: String,
+  },
+  occupation: {
+    type: String,
+  },
+  phoneNumber: {
+    type: String,
+  },
+  instagramAccount: {
+    type: String,
   },
   email: {
     type: String,
   },
-  mostRecentProceedingId: {
+  cep: {
     type: String,
   },
-  mostRecentProceedingDate: {
-    type: Date,
+  street: {
+    type: String,
   },
-  mostRecentProceedingAfterPhotoUrl: {
+  number: {
+    type: String,
+  },
+  district: {
+    type: String,
+  },
+  city: {
+    type: String,
+  },
+  complement: {
+    type: String,
+  },
+  state: {
     type: String,
   },
 });

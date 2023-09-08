@@ -28,18 +28,47 @@ export const CreateCustomer = async (
       userId: userEmail,
       customerId: customerId,
       customerName: request.customerName,
-      phoneNumber: request.phoneNumber,
       birthDate: request.birthDate,
-      creationDate: new Date(),
+      cpf: request.cpf,
+      gender: request.gender,
+      maritalStatus: request.maritalStatus,
+      ethnicity: request.ethnicity,
+      placeOfBirth: request.placeOfBirth,
+      occupation: request.occupation,
+      phoneNumber: request.phoneNumber,
+      instagramAccount: request.instagramAccount,
       email: request.email,
+      cep: request.cep,
+      street: request.street,
+      number: request.number,
+      district: request.district,
+      city: request.city,
+      complement: request.complement,
+      state: request.state,
+      creationDate: new Date(),
     });
 
     const createCustomerResponse = new CreateCustomerResponse(
       result[0].customerId,
-      result[0].customerName,
-      result[0].phoneNumber,
       result[0].creationDate,
-      result[0].email
+      result[0].customerName,
+      result[0].birthDate,
+      result[0].cpf,
+      result[0].gender,
+      result[0].maritalStatus,
+      result[0].ethnicity,
+      result[0].placeOfBirth,
+      result[0].occupation,
+      result[0].phoneNumber,
+      result[0].instagramAccount,
+      result[0].email,
+      result[0].cep,
+      result[0].street,
+      result[0].number,
+      result[0].district,
+      result[0].city,
+      result[0].complement,
+      result[0].state
     );
 
     return createCustomerResponse;
@@ -58,19 +87,47 @@ export const UpdateCustomer = async (
     { userId: userEmail, customerId: request.customerId },
     {
       customerName: request.customerName,
-      phoneNumber: request.phoneNumber,
       birthDate: request.birthDate,
+      cpf: request.cpf,
+      gender: request.gender,
+      maritalStatus: request.maritalStatus,
+      ethnicity: request.ethnicity,
+      placeOfBirth: request.placeOfBirth,
+      occupation: request.occupation,
+      phoneNumber: request.phoneNumber,
+      instagramAccount: request.instagramAccount,
       email: request.email,
+      cep: request.cep,
+      street: request.street,
+      number: request.number,
+      district: request.district,
+      city: request.city,
+      complement: request.complement,
+      state: request.state,
     }
   );
 
   return new UpdateCustomerResponse(
     result!.customerId,
-    request.customerName,
-    request.phoneNumber,
-    request.birthDate,
     result!.creationDate,
-    request!.email
+    request.customerName,
+    request.birthDate,
+    request.cpf,
+    request.gender,
+    request.maritalStatus,
+    request.ethnicity,
+    request.placeOfBirth,
+    request.occupation,
+    request.phoneNumber,
+    request.instagramAccount,
+    request.email,
+    request.cep,
+    request.street,
+    request.number,
+    request.district,
+    request.city,
+    request.complement,
+    request.state
   );
 };
 
@@ -156,10 +213,7 @@ export const GetCustomers = async (
           entity.phoneNumber,
           entity.birthDate,
           entity.creationDate,
-          entity.email,
-          entity.mostRecentProceedingId,
-          entity.mostRecentProceedingDate,
-          entity.mostRecentProceedingAfterPhotoUrl
+          entity.email
         );
 
         customers.push(customer);
@@ -244,10 +298,7 @@ export const GetCustomers = async (
         entity.phoneNumber,
         entity.birthDate,
         entity.creationDate,
-        entity.email,
-        entity.mostRecentProceedingId,
-        entity.mostRecentProceedingDate,
-        entity.mostRecentProceedingAfterPhotoUrl
+        entity.email
       );
 
       customers.push(customer);
@@ -281,11 +332,25 @@ export const GetCustomerById = async (
   customerResponse = new GetCustomerByIdResponse(
     customerDocument!.userId,
     customerDocument!.customerId,
-    customerDocument!.customerName,
-    customerDocument!.phoneNumber,
-    customerDocument!.birthDate,
     customerDocument!.creationDate,
-    customerDocument!.email
+    customerDocument!.customerName,
+    customerDocument!.birthDate,
+    customerDocument!.cpf,
+    customerDocument!.gender,
+    customerDocument!.maritalStatus,
+    customerDocument!.ethnicity,
+    customerDocument!.placeOfBirth,
+    customerDocument!.occupation,
+    customerDocument!.phoneNumber,
+    customerDocument!.instagramAccount,
+    customerDocument!.email,
+    customerDocument!.cep,
+    customerDocument!.street,
+    customerDocument!.number,
+    customerDocument!.district,
+    customerDocument!.city,
+    customerDocument!.complement,
+    customerDocument!.state
   );
 
   return customerResponse;
