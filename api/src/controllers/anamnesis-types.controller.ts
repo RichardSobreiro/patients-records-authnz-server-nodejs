@@ -26,7 +26,7 @@ export default (): { [key: string]: Middleware } => ({
   getAnamnesisTypeById: async (ctx) => {
     try {
       const userId = ctx.state.session.sub as string;
-      const anamnesisTypeId = ctx.query.anamnesisTypeId as string;
+      const anamnesisTypeId = ctx.params.anamnesisTypeId as string;
 
       const responseBody = await GetAnamnesisTypeById(userId, anamnesisTypeId);
 

@@ -60,7 +60,8 @@ export const GetAnamnesisTypeById = async (
         anamnesisTypeDocument[0].anamnesisTypeId,
         anamnesisTypeDocument[0].anamnesisTypeDescription,
         anamnesisTypeDocument[0].template,
-        anamnesisTypeDocument[0].isDefault
+        anamnesisTypeDocument[0].isDefault,
+        anamnesisTypeDocument[0].questions
       );
     return response;
   } else {
@@ -109,7 +110,8 @@ export const GetAnamnesisTypes = async (
       anamnesisTypeDocument.anamnesisTypeId,
       anamnesisTypeDocument.anamnesisTypeDescription,
       anamnesisTypeDocument.template,
-      anamnesisTypeDocument.isDefault
+      anamnesisTypeDocument.isDefault,
+      anamnesisTypeDocument.questions
     );
     response.anamnesisTypes?.push(anamnesisType);
   }

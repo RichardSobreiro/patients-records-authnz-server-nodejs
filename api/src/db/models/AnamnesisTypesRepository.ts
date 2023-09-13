@@ -1,6 +1,7 @@
 /** @format */
 
 import mongoose, { Schema } from "mongoose";
+import { GetQuestionItem } from "../../models/customers/anamnesis/anamnesis-types/GetAnamnesisTypesResponse";
 
 export interface AnamnesisType {
   userId?: string;
@@ -9,6 +10,7 @@ export interface AnamnesisType {
   anamnesisTypeDescription: string;
   isDefault: boolean;
   template: string | null;
+  questions: GetQuestionItem[] | undefined;
 }
 
 const AnamnesisTypesSchema = new Schema({
@@ -38,6 +40,30 @@ const AnamnesisTypesSchema = new Schema({
   template: {
     type: String,
   },
+  questions: [
+    {
+      questionItemId: {
+        type: String,
+        required: true,
+      },
+      questionType: {
+        type: String,
+        required: true,
+      },
+      questionPhrase: {
+        type: String,
+        required: true,
+      },
+      questionAnswersOptions: [
+        {
+          type: String,
+        },
+      ],
+      questionValue: {
+        type: String,
+      },
+    },
+  ],
 });
 
 export const AnamnesisTypeRepository = mongoose.model<AnamnesisType>(

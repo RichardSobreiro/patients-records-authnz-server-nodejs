@@ -90,6 +90,30 @@ const AnamneseSchema = new Schema({
           },
         },
       ],
+      questions: [
+        {
+          questionItemId: {
+            type: String,
+            required: true,
+          },
+          questionType: {
+            type: String,
+            required: true,
+          },
+          questionPhrase: {
+            type: String,
+            required: true,
+          },
+          questionAnswersOptions: [
+            {
+              type: String,
+            },
+          ],
+          questionValue: {
+            type: String,
+          },
+        },
+      ],
     },
   ],
   freeTypeText: {

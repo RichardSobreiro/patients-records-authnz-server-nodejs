@@ -1,5 +1,15 @@
 /** @format */
 
+export class UpdateQuestionAnswerRequest {
+  constructor(
+    public questionItemId: string,
+    public questionType: string,
+    public questionPhrase: string,
+    public questionAnswersOptions: string[] | undefined,
+    public questionValue: string | undefined
+  ) {}
+}
+
 export class UpdateAnamnesisTypeFileResponse {
   constructor(
     public fileId: string,
@@ -21,7 +31,8 @@ export class UpdateAnamnesisTypeContentResponse {
     public anamnesisTypeDescription: string,
     public isDefault: boolean,
     public content?: string | null,
-    public files?: UpdateAnamnesisTypeFileResponse[] | null
+    public files?: UpdateAnamnesisTypeFileResponse[] | null,
+    public questions?: UpdateQuestionAnswerRequest[] | undefined
   ) {}
 }
 
