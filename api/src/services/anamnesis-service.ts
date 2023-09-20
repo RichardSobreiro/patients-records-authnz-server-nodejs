@@ -305,8 +305,10 @@ export const UpdateAnamnesis = async (
 ): Promise<UpdateAnamnesisResponse> => {
   let updatedFilesRequests: UpdateAnamnesisTypeFileRequest[] | undefined =
     undefined;
+
   const containerClient = await createContainerClient(userEmail);
   containerClient.createIfNotExists();
+
   try {
     const oldAnamnesisDocument = await AnamneseRepository.find({
       customerId: request.customerId,

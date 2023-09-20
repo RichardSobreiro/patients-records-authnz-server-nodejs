@@ -26,6 +26,7 @@ export const CreateAnamnesisType = async (
       template: request.template,
       isDefault: false,
       creationDate: new Date(),
+      questions: request.questions,
     });
 
     anamnesisTypeResponse = new CreateAnamnesisTypeResponse(
@@ -33,7 +34,8 @@ export const CreateAnamnesisType = async (
       serviceTypeDocument[0].creationDate,
       false,
       serviceTypeDocument[0].anamnesisTypeDescription,
-      serviceTypeDocument[0].template
+      serviceTypeDocument[0].template,
+      serviceTypeDocument[0].questions
     );
 
     return anamnesisTypeResponse;
@@ -49,10 +51,18 @@ export const GetAnamnesisTypeById = async (
   userId: string,
   anamnesisTypeId: string
 ): Promise<GetAnamnesisTypeByIdResponse | null> => {
-  const anamnesisTypeDocument = await AnamnesisTypeRepository.find({
+  let anamnesisTypeDocument = await AnamnesisTypeRepository.find({
     userId: userId,
     anamnesisTypeId: anamnesisTypeId,
+    isDefault: false,
   });
+
+  if (!anamnesisTypeDocument || anamnesisTypeDocument.length === 0) {
+    anamnesisTypeDocument = await AnamnesisTypeRepository.find({
+      anamnesisTypeId: anamnesisTypeId,
+      isDefault: true,
+    });
+  }
 
   if (anamnesisTypeDocument) {
     const response: GetAnamnesisTypeByIdResponse =
@@ -84,6 +94,7 @@ export const GetAnamnesisTypes = async (
             $regex: anamnesisTypeDescription,
             $options: "i",
           },
+          isDefault: false,
         },
         {
           isDefault: true,
@@ -104,8 +115,42 @@ export const GetAnamnesisTypes = async (
     userId
   );
 
+  const anamnesisTypesDocumentsNoDuplicates = anamnesisTypesDocuments.reduce(
+    (curArray, itr) => {
+      const userTypeIndex = curArray.findIndex(
+        (item) =>
+          item.userId === userId &&
+          item.anamnesisTypeId === itr.anamnesisTypeId &&
+          item.isDefault === false
+      );
+      const defaultTypeIndex = curArray.findIndex((item) => {
+        return (
+          item.userId === undefined &&
+          item.anamnesisTypeId === itr.anamnesisTypeId &&
+          item.isDefault === true
+        );
+      });
+      const itrIsUserType = itr.userId === userId && itr.isDefault === false;
+
+      if (userTypeIndex !== -1 && defaultTypeIndex === -1) {
+        return curArray;
+      } else if (
+        userTypeIndex === -1 &&
+        defaultTypeIndex !== -1 &&
+        itrIsUserType
+      ) {
+        curArray[defaultTypeIndex] = itr;
+        return curArray;
+      }
+
+      curArray.push(itr);
+      return curArray;
+    },
+    []
+  );
+
   response.anamnesisTypes = [];
-  for (const anamnesisTypeDocument of anamnesisTypesDocuments) {
+  for (const anamnesisTypeDocument of anamnesisTypesDocumentsNoDuplicates) {
     const anamnesisType = new GetAnamnesisTypeResponse(
       anamnesisTypeDocument.anamnesisTypeId,
       anamnesisTypeDocument.anamnesisTypeDescription,
@@ -124,23 +169,42 @@ export const UpdateAnamnesisType = async (
   request: UpdateAnamnesisTypeRequest
 ): Promise<UpdateAnamnesisTypeResponse> => {
   try {
-    await AnamnesisTypeRepository.findOneAndUpdate(
-      {
+    const existingUserAnamneseType = await AnamnesisTypeRepository.find({
+      userId: userId,
+      anamnesisTypeId: request.anamnesisTypeId,
+      isDefault: false,
+    });
+
+    if (existingUserAnamneseType && existingUserAnamneseType.length > 0) {
+      await AnamnesisTypeRepository.findOneAndUpdate(
+        {
+          userId: userId,
+          anamnesisTypeId: request.anamnesisTypeId,
+          isDefault: false,
+        },
+        {
+          anamnesisTypeDescription: request.anamnesisTypeDescription,
+          template: request.template,
+          questions: request.questions,
+        }
+      );
+    } else {
+      const serviceTypeDocument = await AnamnesisTypeRepository.insertMany({
         userId: userId,
         anamnesisTypeId: request.anamnesisTypeId,
-        isDefault: false,
-      },
-      {
         anamnesisTypeDescription: request.anamnesisTypeDescription,
         template: request.template,
-      }
-    );
-
+        isDefault: false,
+        creationDate: new Date(),
+        questions: request.questions,
+      });
+    }
     return new UpdateAnamnesisTypeResponse(
       request.anamnesisTypeId,
       false,
       request.anamnesisTypeDescription,
-      request.template
+      request.template,
+      request.questions
     );
   } catch (error: any) {
     throw error;

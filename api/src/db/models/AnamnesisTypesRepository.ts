@@ -26,7 +26,6 @@ const AnamnesisTypesSchema = new Schema({
   anamnesisTypeId: {
     type: String,
     required: true,
-    unique: true,
     index: true,
   },
   anamnesisTypeDescription: {
