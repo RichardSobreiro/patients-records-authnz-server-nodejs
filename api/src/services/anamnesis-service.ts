@@ -220,7 +220,9 @@ export const GetAnamnesisListAsync = async (
       entity.customerId,
       entity.creationDate,
       entity.date,
-      anamneseTypesDescriptions
+      anamneseTypesDescriptions.filter(
+        (item, index) => anamneseTypesDescriptions.indexOf(item) === index
+      )
     );
 
     anamnesis.push(customer);
