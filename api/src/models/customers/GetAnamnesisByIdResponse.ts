@@ -25,6 +25,10 @@ export class GetAnamnesisByIdTypeFileResponse {
   ) {}
 }
 
+export class GetSectionItem {
+  constructor(public sectionId: string, public sectionTitle: string) {}
+}
+
 export class GetAnamnesisTypeContentResponse {
   constructor(
     public anamnesisTypeId: string,
@@ -32,7 +36,8 @@ export class GetAnamnesisTypeContentResponse {
     public isDefault: boolean,
     public content?: string | null,
     public files?: GetAnamnesisByIdTypeFileResponse[] | null,
-    public questions?: GetQuestionItem[] | undefined
+    public questions?: GetQuestionItem[] | undefined,
+    public section?: GetSectionItem[] | undefined
   ) {}
 }
 
@@ -42,12 +47,6 @@ export class GetAnamnesisByIdResponse {
     public customerId: string,
     public creationDate: Date,
     public date: Date,
-    public anamnesisTypesContent: GetAnamnesisTypeContentResponse[],
-    public freeTypeText?: string,
-    public gender?: string,
-    public ethnicity?: string,
-    public maritalStatus?: string,
-    public employmentStatus?: string,
-    public comments?: string
+    public anamnesisTypesContent: GetAnamnesisTypeContentResponse[]
   ) {}
 }

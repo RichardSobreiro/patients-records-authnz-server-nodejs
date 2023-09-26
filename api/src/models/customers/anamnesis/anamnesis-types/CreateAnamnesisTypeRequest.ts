@@ -9,10 +9,15 @@ export class CreateQuestionItem {
   ) {}
 }
 
+export class CreateSectionItem {
+  constructor(public sectionId: string, public sectionTitle: string) {}
+}
+
 export class CreateAnamnesisTypeRequest {
   constructor(
     public anamnesisTypeDescription: string,
     public template: string | null,
-    public questions: CreateQuestionItem[] | undefined
+    public questions: CreateQuestionItem[] | undefined,
+    public sections: CreateSectionItem[] | undefined
   ) {}
 }

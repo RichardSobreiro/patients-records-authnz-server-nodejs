@@ -59,12 +59,6 @@ export const CreateAnamnesis = async (
       creationDate: new Date(),
       date: request.date,
       anamnesisTypesContent: request.anamnesisTypesContent,
-      freeTypeText: request.freeTypeText,
-      gender: request.gender,
-      ethnicity: request.ethnicity,
-      maritalStatus: request.maritalStatus,
-      employmentStatus: request.employmentStatus,
-      comments: request.comments,
     });
 
     anamnesisResponse = new CreateAnamneseResponse(
@@ -72,13 +66,7 @@ export const CreateAnamnesis = async (
       anamneseDocument[0].customerId,
       anamneseDocument[0].creationDate,
       anamneseDocument[0].date,
-      anamneseDocument[0].anamnesisTypesContent,
-      anamneseDocument[0].freeTypeText,
-      anamneseDocument[0].gender,
-      anamneseDocument[0].ethnicity,
-      anamneseDocument[0].maritalStatus,
-      anamneseDocument[0].employmentStatus,
-      anamneseDocument[0].comments
+      anamneseDocument[0].anamnesisTypesContent
     );
 
     return anamnesisResponse;
@@ -249,13 +237,7 @@ export const GetAnamnesisById = async (
       anamnesisDocument[0].customerId,
       anamnesisDocument[0].creationDate,
       anamnesisDocument[0].date,
-      anamnesisDocument[0].anamnesisTypesContent,
-      anamnesisDocument[0].freeTypeText,
-      anamnesisDocument[0].gender,
-      anamnesisDocument[0].ethnicity,
-      anamnesisDocument[0].maritalStatus,
-      anamnesisDocument[0].employmentStatus,
-      anamnesisDocument[0].comments
+      anamnesisDocument[0].anamnesisTypesContent
     );
 
     const thresholdDateTime = new Date();
@@ -402,12 +384,6 @@ export const UpdateAnamnesis = async (
         customerId: request.customerId,
         date: request.date,
         anamnesisTypesContent: request.anamnesisTypesContent,
-        freeTypeText: request.freeTypeText,
-        gender: request.gender,
-        ethnicity: request.ethnicity,
-        maritalStatus: request.maritalStatus,
-        employmentStatus: request.employmentStatus,
-        comments: request.comments,
       }
     );
 
@@ -415,13 +391,7 @@ export const UpdateAnamnesis = async (
       request.anamneseId,
       request.customerId,
       request.date,
-      request.anamnesisTypesContent,
-      request.freeTypeText,
-      request.gender,
-      request.ethnicity,
-      request.maritalStatus,
-      request.employmentStatus,
-      request.comments
+      request.anamnesisTypesContent
     );
   } catch (error: any) {
     throw error;

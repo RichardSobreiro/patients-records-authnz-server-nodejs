@@ -27,6 +27,7 @@ export const CreateAnamnesisType = async (
       isDefault: false,
       creationDate: new Date(),
       questions: request.questions,
+      sections: request.sections,
     });
 
     anamnesisTypeResponse = new CreateAnamnesisTypeResponse(
@@ -35,7 +36,8 @@ export const CreateAnamnesisType = async (
       false,
       serviceTypeDocument[0].anamnesisTypeDescription,
       serviceTypeDocument[0].template,
-      serviceTypeDocument[0].questions
+      serviceTypeDocument[0].questions,
+      serviceTypeDocument[0].sections
     );
 
     return anamnesisTypeResponse;
@@ -71,7 +73,8 @@ export const GetAnamnesisTypeById = async (
         anamnesisTypeDocument[0].anamnesisTypeDescription,
         anamnesisTypeDocument[0].template,
         anamnesisTypeDocument[0].isDefault,
-        anamnesisTypeDocument[0].questions
+        anamnesisTypeDocument[0].questions,
+        anamnesisTypeDocument[0].sections
       );
     return response;
   } else {
@@ -156,7 +159,8 @@ export const GetAnamnesisTypes = async (
       anamnesisTypeDocument.anamnesisTypeDescription,
       anamnesisTypeDocument.template,
       anamnesisTypeDocument.isDefault,
-      anamnesisTypeDocument.questions
+      anamnesisTypeDocument.questions,
+      anamnesisTypeDocument.sections
     );
     response.anamnesisTypes?.push(anamnesisType);
   }
@@ -186,6 +190,7 @@ export const UpdateAnamnesisType = async (
           anamnesisTypeDescription: request.anamnesisTypeDescription,
           template: request.template,
           questions: request.questions,
+          sections: request.sections,
         }
       );
     } else {
@@ -197,6 +202,7 @@ export const UpdateAnamnesisType = async (
         isDefault: false,
         creationDate: new Date(),
         questions: request.questions,
+        sections: request.sections,
       });
     }
     return new UpdateAnamnesisTypeResponse(
@@ -204,7 +210,8 @@ export const UpdateAnamnesisType = async (
       false,
       request.anamnesisTypeDescription,
       request.template,
-      request.questions
+      request.questions,
+      request.sections
     );
   } catch (error: any) {
     throw error;

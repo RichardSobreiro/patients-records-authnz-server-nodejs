@@ -9,12 +9,6 @@ export interface Anamnese {
   creationDate: Date;
   date: Date;
   anamnesisTypesContent: CreateAnamnesisTypeContentRequest[];
-  freeTypeText?: string;
-  gender?: string;
-  ethnicity?: string;
-  maritalStatus?: string;
-  employmentStatus?: string;
-  comments?: string;
 }
 
 const AnamneseSchema = new Schema({
@@ -112,34 +106,26 @@ const AnamneseSchema = new Schema({
           questionValue: {
             type: String,
           },
+          sectionId: {
+            type: String,
+          },
+        },
+      ],
+      sections: [
+        {
+          sectionId: {
+            type: String,
+            required: true,
+            index: true,
+          },
+          sectionTitle: {
+            type: String,
+            required: true,
+          },
         },
       ],
     },
   ],
-  freeTypeText: {
-    type: String,
-    required: false,
-  },
-  gender: {
-    type: String,
-    required: false,
-  },
-  ethnicity: {
-    type: String,
-    required: false,
-  },
-  maritalStatus: {
-    type: String,
-    required: false,
-  },
-  employmentStatus: {
-    type: String,
-    required: false,
-  },
-  comments: {
-    type: String,
-    required: false,
-  },
 });
 
 export const AnamneseRepository = mongoose.model<Anamnese>(

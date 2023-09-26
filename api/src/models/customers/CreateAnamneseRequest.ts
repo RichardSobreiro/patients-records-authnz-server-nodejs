@@ -25,6 +25,10 @@ export class CreateAnamnesisTypeFileRequest {
   ) {}
 }
 
+export class CreateSectionItem {
+  constructor(public sectionId: string, public sectionTitle: string) {}
+}
+
 export class CreateAnamnesisTypeContentRequest {
   constructor(
     public anamnesisTypeId: string,
@@ -32,7 +36,8 @@ export class CreateAnamnesisTypeContentRequest {
     public isDefault: boolean,
     public content?: string | null,
     public files?: CreateAnamnesisTypeFileRequest[] | null,
-    public questions?: CreateQuestionAnswerRequest[] | undefined
+    public questions?: CreateQuestionAnswerRequest[] | undefined,
+    public sections?: CreateSectionItem[] | undefined
   ) {}
 }
 
@@ -40,13 +45,6 @@ export class CreateAnamneseRequest {
   constructor(
     public customerId: string,
     public date: Date,
-    public anamnesisTypesContent: CreateAnamnesisTypeContentRequest[],
-    public birthDate: Date,
-    public freeTypeText?: string,
-    public gender?: string,
-    public ethnicity?: string,
-    public maritalStatus?: string,
-    public employmentStatus?: string,
-    public comments?: string
+    public anamnesisTypesContent: CreateAnamnesisTypeContentRequest[]
   ) {}
 }

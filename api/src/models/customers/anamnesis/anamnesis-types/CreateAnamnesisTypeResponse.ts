@@ -9,6 +9,10 @@ export class CreateQuestionItem {
   ) {}
 }
 
+export class CreateSectionItem {
+  constructor(public sectionId: string, public sectionTitle: string) {}
+}
+
 export class CreateAnamnesisTypeResponse {
   constructor(
     public anamnesisTypeId: string,
@@ -16,6 +20,7 @@ export class CreateAnamnesisTypeResponse {
     public isDefault: boolean,
     public anamnesisTypeDescription: string,
     public template: string | null,
-    public questions: CreateQuestionItem[] | undefined
+    public questions: CreateQuestionItem[] | undefined,
+    public sections: CreateSectionItem[] | undefined
   ) {}
 }
