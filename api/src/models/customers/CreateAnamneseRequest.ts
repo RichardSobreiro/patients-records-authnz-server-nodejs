@@ -6,7 +6,8 @@ export class CreateQuestionAnswerRequest {
     public questionType: string,
     public questionPhrase: string,
     public questionAnswersOptions: string[] | undefined,
-    public questionValue: string | undefined
+    public questionValue: string | undefined,
+    public sectionId?: string
   ) {}
 }
 
