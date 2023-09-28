@@ -31,8 +31,12 @@ export default () => {
     getAnamnesisList,
   } = anamnesisController();
 
-  const { createServiceType, getServiceTypeList, updateServiceType } =
-    serviceTypesController();
+  const {
+    createServiceType,
+    getServiceTypeById,
+    updateServiceType,
+    getServiceTypeList,
+  } = serviceTypesController();
 
   const { createService, getServiceById, getServices, updateService } =
     servicesController();
@@ -114,12 +118,17 @@ export default () => {
   //------------------------------------------------------------------------------------------------------
   // Service Types
   router.post("/customers/services/types", authenticate, createServiceType);
-  router.get("/customers/services/types", authenticate, getServiceTypeList);
+  router.get(
+    "/customers/services/types/:serviceTypeId",
+    authenticate,
+    getServiceTypeById
+  );
   router.put(
     "/customers/services/types/:serviceTypeId",
     authenticate,
     updateServiceType
   );
+  router.get("/customers/services/types", authenticate, getServiceTypeList);
   //------------------------------------------------------------------------------------------------------
   // Services
   router.post(

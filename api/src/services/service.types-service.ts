@@ -43,6 +43,57 @@ export const CreateServiceType = async (
   }
 };
 
+export const GetServiceTypeById = async (
+  userId: string,
+  serviceTypeId: string
+): Promise<GetServiceTypeResponse | null> => {
+  const serviceTypeDocument = await ServiceTypeRepository.find({
+    userId: userId,
+    isDefault: false,
+    serviceTypeId: serviceTypeId,
+  });
+
+  if (serviceTypeDocument) {
+    const response: GetServiceTypeResponse = new GetServiceTypeResponse(
+      serviceTypeId,
+      serviceTypeDocument[0].serviceTypeDescription,
+      serviceTypeDocument[0].notes,
+      serviceTypeDocument[0].isDefault
+    );
+    return response;
+  } else {
+    return null;
+  }
+};
+
+export const UpdateServiceType = async (
+  userId: string,
+  request: UpdateServiceTypeRequest
+): Promise<UpdateServiceTypeResponse> => {
+  try {
+    const serviceTypeDocument = await ServiceTypeRepository.findOneAndUpdate(
+      {
+        userId: userId,
+        serviceTypeId: request.serviceTypeId,
+        isDefault: false,
+      },
+      {
+        serviceTypeDescription: request.serviceTypeDescription,
+        notes: request.notes,
+      }
+    );
+
+    return new UpdateServiceTypeResponse(
+      request.serviceTypeId,
+      false,
+      request.serviceTypeDescription,
+      request.notes
+    );
+  } catch (error: any) {
+    throw error;
+  }
+};
+
 export const GetServicesTypes = async (
   userId: string,
   serviceTypeDescription?: string
@@ -98,32 +149,4 @@ export const GetServicesTypes = async (
   });
 
   return response;
-};
-
-export const UpdateServiceType = async (
-  userId: string,
-  request: UpdateServiceTypeRequest
-): Promise<UpdateServiceTypeResponse> => {
-  try {
-    const serviceTypeDocument = await ServiceTypeRepository.findOneAndUpdate(
-      {
-        userId: userId,
-        serviceTypeId: request.serviceTypeId,
-        isDefault: false,
-      },
-      {
-        serviceTypeDescription: request.serviceTypeDescription,
-        notes: request.notes,
-      }
-    );
-
-    return new UpdateServiceTypeResponse(
-      request.serviceTypeId,
-      false,
-      request.serviceTypeDescription,
-      request.notes
-    );
-  } catch (error: any) {
-    throw error;
-  }
 };

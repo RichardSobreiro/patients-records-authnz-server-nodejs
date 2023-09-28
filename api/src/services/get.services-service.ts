@@ -92,6 +92,7 @@ export const getServices = async (
       $or: [
         {
           userId: userId,
+          isDefault: false,
           serviceTypeDescription: {
             $regex: serviceTypeDescription,
             $options: "i",
@@ -119,15 +120,28 @@ export const getServices = async (
           (s) => s.serviceTypeId
         );
       }
+    } else {
+      const responseEmpty = new GetServicesResponse(customerId, 0);
+
+      responseEmpty.previous = undefined;
+      responseEmpty.next = undefined;
+
+      responseEmpty.servicesList = [];
+      return responseEmpty;
     }
   }
 
   const filter: any = {};
   filter.userId = userId;
   filter.customerId = customerId;
+
+  if (serviceTypeDescription) {
+  }
+
   if (startDate && endDate) {
     filter.date = { $gte: startDate, $lte: endDate };
   }
+
   if (serviceTypeIds && serviceTypeIds.length > 0) {
     filter.serviceTypeIds = { $in: serviceTypeIds };
   }
