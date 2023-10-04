@@ -8,6 +8,7 @@ import { authenticate, authorize } from "../middlewares/auth.middleware";
 import anamnesisController from "../controllers/anamnesis.controller";
 import serviceTypesController from "../controllers/service-types.controller";
 import anamnesisTypesController from "../controllers/anamnesis-types.controller";
+import whatsappController from "../controllers/whatsapp.controller";
 
 const upload = multer();
 
@@ -41,6 +42,21 @@ export default () => {
   const { createService, getServiceById, getServices, updateService } =
     servicesController();
 
+  const {
+    whatsappVerify,
+    webHookEventNotification,
+    sendAppointmentReminderMessage,
+  } = whatsappController();
+
+  //------------------------------------------------------------------------------------------------------
+  // Whatsapp
+  router.get("/webhooks/whatsapp", whatsappVerify);
+  router.post("/webhooks/whatsapp", webHookEventNotification);
+  router.post(
+    "/messages/appointments/whatsapp",
+    authenticate,
+    sendAppointmentReminderMessage
+  );
   //------------------------------------------------------------------------------------------------------
   // Customers
   router.get("/pi", authenticate, authorize("api:read"), pi);

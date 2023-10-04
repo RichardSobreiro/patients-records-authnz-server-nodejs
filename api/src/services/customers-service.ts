@@ -23,6 +23,15 @@ export const CreateCustomer = async (
   const customerId = uuidv4();
   const anamneseId = uuidv4();
   let result: any = {};
+
+  const phoneNumberRaw =
+    "55" +
+    request.phoneNumber
+      .replace(/(/g, "")
+      .replace(/)/g, "")
+      .replace(/-/g, "")
+      .replace(/ /g, "");
+
   try {
     result = await CustomersRepository.insertMany({
       userId: userEmail,
@@ -35,6 +44,7 @@ export const CreateCustomer = async (
       ethnicity: request.ethnicity,
       placeOfBirth: request.placeOfBirth,
       occupation: request.occupation,
+      phoneNumberRaw: phoneNumberRaw,
       phoneNumber: request.phoneNumber,
       instagramAccount: request.instagramAccount,
       email: request.email,
@@ -83,6 +93,14 @@ export const UpdateCustomer = async (
   userEmail: string,
   request: UpdateCustomerRequest
 ): Promise<UpdateCustomerResponse> => {
+  const phoneNumberRaw =
+    "55" +
+    request.phoneNumber
+      .replace(/(/g, "")
+      .replace(/)/g, "")
+      .replace(/-/g, "")
+      .replace(/ /g, "");
+
   const result = await CustomersRepository.findOneAndUpdate(
     { userId: userEmail, customerId: request.customerId },
     {
@@ -94,6 +112,7 @@ export const UpdateCustomer = async (
       ethnicity: request.ethnicity,
       placeOfBirth: request.placeOfBirth,
       occupation: request.occupation,
+      phoneNumberRaw: phoneNumberRaw,
       phoneNumber: request.phoneNumber,
       instagramAccount: request.instagramAccount,
       email: request.email,

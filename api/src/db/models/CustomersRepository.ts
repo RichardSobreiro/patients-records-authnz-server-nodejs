@@ -14,6 +14,7 @@ interface Customer {
   ethnicity: string | undefined;
   placeOfBirth: string | undefined;
   occupation: string | undefined;
+  phoneNumberRaw: string | undefined;
   phoneNumber: string;
   instagramAccount: string | undefined;
   email: string | undefined;
@@ -68,6 +69,10 @@ const CustomersSchema = new Schema({
   },
   occupation: {
     type: String,
+  },
+  phoneNumberRaw: {
+    type: String,
+    index: true,
   },
   phoneNumber: {
     type: String,
