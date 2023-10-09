@@ -12,6 +12,11 @@ import { createBlobSas } from "./azure/azure.storage.account";
 import { GetServiceTypeResponse } from "../models/customers/services/service-types/GetServiceTypesResponse";
 import { GetServiceByIdResponse } from "../models/customers/services/GetServiceByIdResponse";
 import { GetServicePhotosResponse } from "../models/customers/services/GetServicePhotosResponse";
+import {
+  GetServiceAgendaResponse,
+  GetServiceTypeAgendaResponse,
+  GetServicesAgendaResponse,
+} from "../models/customers/services/GetServiceAgendaResponse ";
 
 export const getServiceById = async (
   customerId: string,
@@ -243,4 +248,91 @@ const createPhotoResponse = async (
     photosResponse.push(photoResponse);
   }
   return photosResponse;
+};
+
+export const getServicesAgenda = async (
+  userId: string,
+  startDate?: Date,
+  endDate?: Date
+): Promise<GetServicesAgendaResponse> => {
+  const filter: any = {};
+  filter.userId = userId;
+
+  if (startDate && endDate) {
+    filter.date = { $gte: startDate, $lte: endDate };
+  }
+
+  const serviceDocuments = await ServicesRepository.find(filter)
+    .sort({ date: "desc" })
+    .exec();
+
+  const servicesCount = await ServicesRepository.countDocuments(filter).exec();
+
+  const serviceTypeFilteredIds = [
+    ...new Set(
+      serviceDocuments.map((document) => document.serviceTypeIds).flat()
+    ),
+  ];
+
+  const serviceTypeFilteredDocuments = await ServiceTypeRepository.find({
+    serviceTypeId: { $in: serviceTypeFilteredIds },
+  });
+
+  const customerDocumentsIds = [
+    ...new Set(serviceDocuments.map((document) => document.customerId).flat()),
+  ];
+
+  const customerDocuments = await CustomersRepository.find({
+    customerId: { $in: customerDocumentsIds },
+  });
+
+  let response = new GetServicesAgendaResponse(servicesCount);
+
+  response.servicesList = [];
+  for (const serviceDocument of serviceDocuments) {
+    let serviceTypeDocuments = serviceTypeFilteredDocuments.filter(
+      (document) => {
+        return (
+          serviceDocument.serviceTypeIds.indexOf(document.serviceTypeId) !== -1
+        );
+      }
+    );
+
+    const currentCustomerServiceOwner = customerDocuments.find(
+      (c) => c.customerId === serviceDocument.customerId
+    );
+
+    if (
+      !currentCustomerServiceOwner ||
+      currentCustomerServiceOwner === undefined
+    ) {
+      throw new Error(
+        `Customer not found - customerId = ${serviceDocument.customerId}`
+      );
+    }
+
+    const getServiceTypesResponse: GetServiceTypeAgendaResponse[] = [];
+    for (const serviceTypeDocument of serviceTypeDocuments) {
+      getServiceTypesResponse.push(
+        new GetServiceTypeAgendaResponse(
+          serviceTypeDocument.serviceTypeId,
+          serviceTypeDocument.serviceTypeDescription,
+          serviceTypeDocument.notes,
+          serviceTypeDocument.isDefault
+        )
+      );
+    }
+
+    const getServiceResponse = new GetServiceAgendaResponse(
+      serviceDocument.serviceId,
+      currentCustomerServiceOwner.customerId,
+      currentCustomerServiceOwner.customerName,
+      currentCustomerServiceOwner.phoneNumber,
+      serviceDocument.date,
+      getServiceTypesResponse
+    );
+
+    response.servicesList?.push(getServiceResponse);
+  }
+  return response;
 };

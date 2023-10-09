@@ -2,7 +2,11 @@
 import { Middleware, Request } from "koa";
 import { CreateServiceRequest } from "../models/customers/services/CreateServiceRequest";
 import { createService } from "../services/create.service-service";
-import { getServiceById, getServices } from "../services/get.services-service";
+import {
+  getServiceById,
+  getServices,
+  getServicesAgenda,
+} from "../services/get.services-service";
 import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
 import { updateService } from "../services/update.services-service";
 import { GetServiceTypeResponse } from "../models/customers/services/service-types/GetServiceTypesResponse";
@@ -106,6 +110,24 @@ export default (): { [key: string]: Middleware } => ({
         serviceTypeIds,
         serviceTypeDescription
       );
+
+      ctx.status = 200;
+      ctx.message = "Ok";
+      ctx.response.body = JSON.stringify(responseBody);
+    } catch (e: any) {
+      console.log(e);
+      ctx.status = 400;
+      ctx.message = "Bad Request";
+      ctx.response.body = { message: e.message, stackTrace: e.stack };
+    }
+  },
+  getServicesAgenda: async (ctx) => {
+    try {
+      const startDate = ctx.query.startDate as unknown as Date;
+      const endDate = ctx.query.endDate as unknown as Date;
+      const userId = ctx.state.session.sub as string;
+
+      const responseBody = await getServicesAgenda(userId, startDate, endDate);
 
       ctx.status = 200;
       ctx.message = "Ok";

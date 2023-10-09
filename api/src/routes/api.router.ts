@@ -39,8 +39,13 @@ export default () => {
     getServiceTypeList,
   } = serviceTypesController();
 
-  const { createService, getServiceById, getServices, updateService } =
-    servicesController();
+  const {
+    createService,
+    getServiceById,
+    getServices,
+    updateService,
+    getServicesAgenda,
+  } = servicesController();
 
   const {
     whatsappVerify,
@@ -206,6 +211,8 @@ export default () => {
   );
 
   router.get("/customers/:customerId/services", authenticate, getServices);
+
+  router.get("/customers/services", authenticate, getServicesAgenda);
 
   return router;
 };
