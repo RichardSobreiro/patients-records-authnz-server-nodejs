@@ -27,9 +27,9 @@ export const CreateCustomer = async (
   const phoneNumberRaw =
     "55" +
     request.phoneNumber
-      .replace(/(/g, "")
-      .replace(/)/g, "")
-      .replace(/-/g, "")
+      .replace(/\(/g, "")
+      .replace(/\)/g, "")
+      .replace(/\-/g, "")
       .replace(/ /g, "");
 
   try {
@@ -96,9 +96,9 @@ export const UpdateCustomer = async (
   const phoneNumberRaw =
     "55" +
     request.phoneNumber
-      .replace(/(/g, "")
-      .replace(/)/g, "")
-      .replace(/-/g, "")
+      .replace(/\(/g, "")
+      .replace(/\)/g, "")
+      .replace(/\-/g, "")
       .replace(/ /g, "");
 
   const result = await CustomersRepository.findOneAndUpdate(
