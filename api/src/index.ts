@@ -21,7 +21,7 @@ const start = async () => {
   );
   app.use(bodyparser());
   app.use(async (ctx, next) => {
-    //ctx.set("Content-Type", "application/json; charset=utf-8");
+    ctx.set("Content-Type", "application/json; charset=utf-8");
     ctx.set("Access-Control-Allow-Origin", "*");
     ctx.set(
       "Access-Control-Allow-Headers",

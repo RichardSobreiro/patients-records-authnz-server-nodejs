@@ -132,6 +132,7 @@ export default (): { [key: string]: Middleware } => ({
       ctx.status = 200;
       ctx.message = "Ok";
       ctx.response.body = JSON.stringify(responseBody);
+      ctx.response.headers["Content-Type"] = "application/json";
     } catch (e: any) {
       console.log(e);
       ctx.status = 400;

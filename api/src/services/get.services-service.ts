@@ -258,9 +258,15 @@ export const getServicesAgenda = async (
   const filter: any = {};
   filter.userId = userId;
 
-  if (startDate && endDate) {
-    filter.date = { $gte: startDate, $lte: endDate };
+  if (!startDate && !endDate) {
+    startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    startDate.setHours(0, 0, 0);
+    endDate = new Date();
+    endDate.setDate(endDate.getDate() + 30);
+    endDate.setHours(23, 59, 0);
   }
+  filter.date = { $gte: startDate, $lte: endDate };
 
   const serviceDocuments = await ServicesRepository.find(filter)
     .sort({ date: "desc" })
