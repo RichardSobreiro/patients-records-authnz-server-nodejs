@@ -29,6 +29,8 @@ export const updateService = async (
     { userId: userId, customerId: customerId, serviceId: serviceId },
     {
       date: new Date(request.date),
+      durationHours: request.durationHours,
+      durationMinutes: request.durationMinutes,
       serviceTypeIds: request.serviceTypes.map((type) => type.serviceTypeId),
       beforeNotes: request.beforeNotes,
       afterNotes: request.afterNotes,
@@ -39,6 +41,8 @@ export const updateService = async (
     serviceId,
     customerId,
     request!.date,
+    request!.durationHours,
+    request!.durationMinutes,
     request.serviceTypes,
     request!.beforeNotes,
     request.afterNotes

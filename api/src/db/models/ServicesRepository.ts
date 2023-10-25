@@ -8,6 +8,8 @@ interface Service {
   userId: string;
   creationDate: Date;
   date: Date;
+  durationHours: number;
+  durationMinutes: number;
   serviceTypeIds: string[];
   beforeNotes: string;
   afterNotes: string;
@@ -39,6 +41,14 @@ const ServicesSchema = new Schema({
     type: Date,
     required: true,
     index: true,
+  },
+  durationHours: {
+    type: Number,
+    required: true,
+  },
+  durationMinutes: {
+    type: Number,
+    required: true,
   },
   serviceTypeIds: {
     type: [String],

@@ -35,6 +35,8 @@ export const createService = async (
       userId: userId,
       creationDate: new Date(),
       date: new Date(request.date),
+      durationHours: request.durationHours,
+      durationMinutes: request.durationMinutes,
       serviceTypeIds: request.serviceTypes.map((type) => type.serviceTypeId),
       beforeNotes: request.beforeNotes,
       afterNotes: request.afterNotes,
@@ -44,6 +46,8 @@ export const createService = async (
       serviceDocument.serviceId,
       serviceDocument.customerId,
       serviceDocument.date,
+      serviceDocument.durationHours,
+      serviceDocument.durationMinutes,
       request.serviceTypes,
       serviceDocument.beforeNotes,
       serviceDocument.afterNotes
