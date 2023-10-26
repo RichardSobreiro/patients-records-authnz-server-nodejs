@@ -16,7 +16,9 @@ export class GetServiceAgendaResponse {
     public customerName: string,
     public customerPhoneNumber: string,
     public date: Date,
-    public serviceTypes: GetServiceTypeAgendaResponse[]
+    public serviceTypes: GetServiceTypeAgendaResponse[],
+    public durationHours: number,
+    public durationMinutes: number
   ) {}
 }
 

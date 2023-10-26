@@ -42,6 +42,8 @@ export const getServiceById = async (
     serviceDocument?.serviceId!,
     serviceDocument?.customerId!,
     serviceDocument?.date!,
+    serviceDocument?.durationHours!,
+    serviceDocument?.durationMinutes!,
     serviceTypeDocuments!.map(
       (serviceTypeDocument) =>
         new GetServiceTypeResponse(
@@ -335,7 +337,9 @@ export const getServicesAgenda = async (
       currentCustomerServiceOwner.customerName,
       currentCustomerServiceOwner.phoneNumber,
       serviceDocument.date,
-      getServiceTypesResponse
+      getServiceTypesResponse,
+      serviceDocument.durationHours,
+      serviceDocument.durationMinutes
     );
 
     response.servicesList?.push(getServiceResponse);
