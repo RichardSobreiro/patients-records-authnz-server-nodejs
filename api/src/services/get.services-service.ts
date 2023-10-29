@@ -17,6 +17,7 @@ import {
   GetServiceTypeAgendaResponse,
   GetServicesAgendaResponse,
 } from "../models/customers/services/GetServiceAgendaResponse ";
+import ServiceStatus from "../constants/enums/ServiceStatus";
 
 export const getServiceById = async (
   customerId: string,
@@ -53,6 +54,9 @@ export const getServiceById = async (
           serviceTypeDocument.isDefault
         )
     ),
+    serviceDocument?.status ?? ServiceStatus.Unconfirmed,
+    serviceDocument?.sendReminder ?? false,
+    serviceDocument?.reminderMessageAdvanceTime ?? 24,
     serviceDocument?.beforeNotes,
     serviceDocument?.afterNotes
   );

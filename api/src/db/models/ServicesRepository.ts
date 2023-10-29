@@ -11,6 +11,9 @@ interface Service {
   durationHours: number;
   durationMinutes: number;
   serviceTypeIds: string[];
+  status: string;
+  sendReminder: boolean;
+  reminderMessageAdvanceTime: number;
   beforeNotes: string;
   afterNotes: string;
 }
@@ -35,7 +38,6 @@ const ServicesSchema = new Schema({
   creationDate: {
     type: Date,
     required: true,
-    index: true,
   },
   date: {
     type: Date,
@@ -52,6 +54,18 @@ const ServicesSchema = new Schema({
   },
   serviceTypeIds: {
     type: [String],
+    required: true,
+  },
+  status: {
+    type: String,
+    required: true,
+  },
+  sendReminder: {
+    type: Boolean,
+    required: true,
+  },
+  reminderMessageAdvanceTime: {
+    type: Number,
     required: true,
   },
   beforeNotes: {

@@ -16,6 +16,8 @@ import {
 
 import { v4 as uuidv4 } from "uuid";
 import { ContainerClient } from "@azure/storage-blob";
+import { ScheduledMessagesRepository } from "../db/models/ScheduledMessagesRepository";
+import ScheduledMessagesStatus from "../constants/enums/ScheduledMessagesStatus";
 
 export const createService = async (
   userId: string,
@@ -38,9 +40,31 @@ export const createService = async (
       durationHours: request.durationHours,
       durationMinutes: request.durationMinutes,
       serviceTypeIds: request.serviceTypes.map((type) => type.serviceTypeId),
+      status: request.status,
+      sendReminder: request.sendReminder,
+      reminderMessageAdvanceTime: request.reminderMessageAdvanceTime,
       beforeNotes: request.beforeNotes,
       afterNotes: request.afterNotes,
     });
+
+    if (request.sendReminder) {
+      const serviceDatetime = new Date(request.date);
+      const now = new Date();
+      const scheduledDateTime = new Date(
+        serviceDatetime.getTime() -
+          request.reminderMessageAdvanceTime * 60 * 60 * 1000
+      );
+      if (scheduledDateTime.getTime() > now.getTime()) {
+        const scheduledMessageDocument =
+          await ScheduledMessagesRepository.create({
+            serviceId: serviceId,
+            customerId: customerId,
+            creationDate: now,
+            scheduledDateTime: scheduledDateTime,
+            status: ScheduledMessagesStatus.Scheduled,
+          });
+      }
+    }
 
     const response = new CreateServiceResponse(
       serviceDocument.serviceId,
@@ -49,6 +73,9 @@ export const createService = async (
       serviceDocument.durationHours,
       serviceDocument.durationMinutes,
       request.serviceTypes,
+      serviceDocument.status,
+      serviceDocument.sendReminder,
+      serviceDocument.reminderMessageAdvanceTime,
       serviceDocument.beforeNotes,
       serviceDocument.afterNotes
     );
