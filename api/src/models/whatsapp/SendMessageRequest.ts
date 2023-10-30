@@ -1,5 +1,8 @@
 /** @format */
 
 export class SendMessageRequest {
-  constructor(public customerId: string) {}
+  constructor(
+    public customerPhoneNumber: string,
+    public customerGender: string
+  ) {}
 }

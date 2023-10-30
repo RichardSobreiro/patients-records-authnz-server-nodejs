@@ -2,7 +2,8 @@
 
 import mongoose, { Schema } from "mongoose";
 
-interface ScheduledMessage {
+export interface ScheduledMessage {
+  scheduledMessageId: string;
   serviceId: string;
   customerId: string;
   creationDate: Date;
@@ -14,10 +15,15 @@ interface ScheduledMessage {
 }
 
 const ScheduledMessagesSchema = new Schema({
-  serviceId: {
+  scheduledMessageId: {
     type: String,
     required: true,
     unique: true,
+    index: true,
+  },
+  serviceId: {
+    type: String,
+    required: true,
     index: true,
   },
   customerId: {

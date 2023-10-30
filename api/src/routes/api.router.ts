@@ -9,6 +9,7 @@ import anamnesisController from "../controllers/anamnesis.controller";
 import serviceTypesController from "../controllers/service-types.controller";
 import anamnesisTypesController from "../controllers/anamnesis-types.controller";
 import whatsappController from "../controllers/whatsapp.controller";
+import remindersController from "../controllers/reminders.controller";
 
 const upload = multer();
 
@@ -213,6 +214,10 @@ export default () => {
   router.get("/customers/:customerId/services", authenticate, getServices);
 
   router.get("/services", authenticate, getServicesAgenda);
+  //------------------------------------------------------------------------------------------------------
+  const { sendReminders } = remindersController();
+  // Messages
+  router.post("/messages/reminders/process", sendReminders);
 
   return router;
 };

@@ -57,6 +57,7 @@ export const createService = async (
       if (scheduledDateTime.getTime() > now.getTime()) {
         const scheduledMessageDocument =
           await ScheduledMessagesRepository.create({
+            scheduledMessageId: uuidv4(),
             serviceId: serviceId,
             customerId: customerId,
             creationDate: now,

@@ -1,68 +1,19 @@
 /** @format */
 import { v4 as uuidv4 } from "uuid";
 import { WhatsappNotificationRepository } from "../db/models/WhatsappNotificationRepository";
-import { CustomersRepository } from "../db/models/CustomersRepository";
 import { SendMessageRequest } from "../models/whatsapp/SendMessageRequest";
+import { SendMessageResponse } from "../models/whatsapp/SendMessageResponse";
+import { SendAppointmentReminderMessageRequest } from "../models/whatsapp/SendAppointmentReminderMessageRequest";
+import { SendAppointmentReminderMessageResponse } from "../models/whatsapp/SendAppointmentReminderMessageResponse";
+import { WhatsappMessageResponsesRepository } from "../db/models/WhatsappMessageResponsesRepository";
+import ScheduledMessagesStatus from "../constants/enums/ScheduledMessagesStatus";
 
-export const sendWelcomeMessage = async (
-  sendMessageRequest: SendMessageRequest
-) => {
+export const sendWelcomeMessage = async (request: SendMessageRequest) => {
   try {
-    const customerDocument = await CustomersRepository.find({
-      customerId: sendMessageRequest.customerId,
-    });
-
-    if (customerDocument !== null && customerDocument.length === 0) {
-      const response = await fetch(
-        `${process.env.FACEBOOK_GRAPH_API!}/${process.env
-          .DEFAULT_PORTAL_ATENDER_PHONE_NUMBER_ID!}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.WHATSAPP_USER_ACCESS_TOKEN!}`,
-          },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            to: customerDocument[0].phoneNumberRaw,
-            type: "template",
-            template: {
-              name: "boas_vindas",
-              language: {
-                code: "pt_BR",
-              },
-              components: [
-                {
-                  type: "header",
-                  parameters: [
-                    {
-                      type: "text",
-                      text: getGenderVariableWelcomeExpression(
-                        customerDocument[0].gender
-                      ),
-                    },
-                  ],
-                },
-              ],
-            },
-          }),
-        }
-      );
-
-      if (response.ok) {
-      }
-    }
-  } catch (error: any) {}
-};
-
-export const sendAppointmentReminderMessage = async (
-  sendMessageRequest: SendMessageRequest
-) => {
-  const customerDocument = await CustomersRepository.find({
-    customerId: sendMessageRequest.customerId,
-  });
-
-  if (customerDocument !== null && customerDocument.length > 0) {
+    const customerPhoneNumber = request.customerPhoneNumber.replace(
+      /[-\._\(\)\+]+/g,
+      ""
+    );
     const response = await fetch(
       `${process.env.FACEBOOK_GRAPH_API!}/${process.env
         .DEFAULT_PORTAL_ATENDER_PHONE_NUMBER_ID!}/messages`,
@@ -74,7 +25,7 @@ export const sendAppointmentReminderMessage = async (
         },
         body: JSON.stringify({
           messaging_product: "whatsapp",
-          to: customerDocument[0].phoneNumberRaw,
+          to: customerPhoneNumber,
           type: "template",
           template: {
             name: "boas_vindas",
@@ -88,7 +39,7 @@ export const sendAppointmentReminderMessage = async (
                   {
                     type: "text",
                     text: getGenderVariableWelcomeExpression(
-                      customerDocument[0].gender
+                      request.customerGender
                     ),
                   },
                 ],
@@ -98,7 +49,105 @@ export const sendAppointmentReminderMessage = async (
         }),
       }
     );
+
+    if (response.ok) {
+    }
+  } catch (error: any) {}
+};
+
+export const sendAppointmentReminderMessage = async (
+  request: SendAppointmentReminderMessageRequest
+): Promise<SendAppointmentReminderMessageResponse> => {
+  const response = new SendAppointmentReminderMessageResponse(
+    request.serviceId,
+    request.customerId
+  );
+  try {
+  } catch (e: any) {
+    const customerPhoneNumber = request.customerPhoneNumber.replace(
+      /[-\._\(\)\+]+/g,
+      ""
+    );
+    const requestResponse = await fetch(
+      `${process.env.FACEBOOK_GRAPH_API!}/${process.env
+        .DEFAULT_PORTAL_ATENDER_PHONE_NUMBER_ID!}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.WHATSAPP_USER_ACCESS_TOKEN!}`,
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: customerPhoneNumber,
+          type: "template",
+          template: {
+            name: "lembrete_agendamento",
+            language: {
+              code: "pt_BR",
+            },
+            components: [
+              {
+                type: "header",
+                parameters: [
+                  {
+                    type: "text",
+                    text: request.customerName,
+                  },
+                ],
+              },
+              {
+                type: "body",
+                parameters: [
+                  {
+                    type: "text",
+                    text: request.professionalName,
+                  },
+                  {
+                    type: "text",
+                    text: request.serviceDate,
+                  },
+                  {
+                    type: "text",
+                    text: request.serviceTime,
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+      }
+    );
+
+    if (requestResponse.ok) {
+      const whatsappResponse = await requestResponse.json();
+      await WhatsappMessageResponsesRepository.create({
+        customerId: request.customerId,
+        serviceId: request.serviceId,
+        creationDatetime: new Date(),
+        input: whatsappResponse.contacts[0].input,
+        wa_id: whatsappResponse.contacts[0].wa_id,
+        whatsappMessageId: whatsappResponse.messages[0].id,
+        whatsappMessageStatus: whatsappResponse.messages[0].message_status,
+      });
+
+      response.whatsappMessageId = whatsappResponse.messages[0].id;
+      response.status =
+        whatsappResponse.messages[0].message_status === "accepted"
+          ? ScheduledMessagesStatus.Sent
+          : ScheduledMessagesStatus.Suspended;
+    } else {
+      response.status = ScheduledMessagesStatus.Error;
+      let requestResponseText: string | null = null;
+      try {
+        requestResponseText = await requestResponse.text();
+      } catch (e: any) {
+        requestResponseText = "Error parsing request response text";
+      }
+      response.errorMessage = `ERROR SENDING MESSAGE - HTTP Response Status: ${requestResponse.status} - HTTP Response Status Text: ${requestResponse.statusText} - HTTP Response Text: ${requestResponseText}`;
+    }
   }
+  return response;
 };
 
 export const processWebhookNotification = async (body: any) => {

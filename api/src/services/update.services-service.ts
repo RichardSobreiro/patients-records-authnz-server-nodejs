@@ -27,6 +27,14 @@ export const updateService = async (
   request: UpdateServiceRequest,
   files: any
 ): Promise<UpdateServiceResponse> => {
+  if (typeof request.sendReminder === "string") {
+    request.sendReminder = JSON.parse(request.sendReminder);
+  }
+  if (typeof request.reminderMessageAdvanceTime === "string") {
+    request.reminderMessageAdvanceTime = JSON.parse(
+      request.reminderMessageAdvanceTime
+    );
+  }
   await ServicesRepository.findOneAndUpdate(
     { userId: userId, customerId: customerId, serviceId: serviceId },
     {
@@ -52,6 +60,7 @@ export const updateService = async (
     if (scheduledDateTime.getTime() > now.getTime()) {
       const scheduledMessageDocument = await ScheduledMessagesRepository.create(
         {
+          scheduledMessageId: uuidv4(),
           serviceId: serviceId,
           customerId: customerId,
           creationDate: now,
