@@ -12,6 +12,46 @@ import { sendAppointmentReminderMessage } from "./whatsapp-service";
 import { SendAppointmentReminderMessageRequest } from "../models/whatsapp/SendAppointmentReminderMessageRequest";
 import { CustomersRepository } from "../db/models/CustomersRepository";
 import { ServicesRepository } from "../db/models/ServicesRepository";
+import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
+import { CreateServiceRequest } from "../models/customers/services/CreateServiceRequest";
+
+export const scheduleReminderMessage = async (
+  customerId: string,
+  serviceId: string,
+  request: CreateServiceRequest | UpdateServiceRequest
+): Promise<void> => {
+  if (request.sendReminder) {
+    const serviceDatetime = new Date(request.date);
+    const now = new Date();
+    const scheduledDateTime = new Date(
+      serviceDatetime.getTime() -
+        request.reminderMessageAdvanceTime * 60 * 60 * 1000
+    );
+    if (serviceDatetime.getTime() > now.getTime()) {
+      const alreadyScheduledMessageDocument =
+        await ScheduledMessagesRepository.findOne({
+          serviceId: serviceId,
+          customerId: customerId,
+        });
+      if (!alreadyScheduledMessageDocument) {
+        const scheduledMessageDocument =
+          await ScheduledMessagesRepository.create({
+            scheduledMessageId: uuidv4(),
+            serviceId: serviceId,
+            customerId: customerId,
+            creationDate: now,
+            scheduledDateTime: scheduledDateTime,
+            status: ScheduledMessagesStatus.Scheduled,
+          });
+      }
+    }
+  } else {
+    await ScheduledMessagesRepository.findOneAndRemove({
+      serviceId: serviceId,
+      customerId: customerId,
+    });
+  }
+};
 
 export const processScheduledReminders = async (): Promise<void> => {
   const currentExecutionDocument =
@@ -29,12 +69,16 @@ export const processScheduledReminders = async (): Promise<void> => {
 
     const scheduledRemindersDocuments = await ScheduledMessagesRepository.find({
       $or: [
-        { status: ScheduledMessagesStatus.Scheduled },
+        {
+          status: ScheduledMessagesStatus.Scheduled,
+          // scheduledDateTime: {
+          //   $gte:
+          //     lastExecutionDocument?.endDatetime?.toUTCString() ??
+          //     new Date(-8640000000000000),
+          // },
+        },
         { status: ScheduledMessagesStatus.Error },
       ],
-      scheduledDateTime: {
-        $gte: lastExecutionDocument?.endDatetime ?? new Date(-8640000000000000),
-      },
     });
 
     for (const scheduledReminder of scheduledRemindersDocuments) {
@@ -132,16 +176,6 @@ const processScheduledMessage = async (scheduledReminder: ScheduledMessage) => {
         whatsappMessageReminderResponse.status === ScheduledMessagesStatus.Error
           ? dateTimeWhatsappApiWasInboked
           : undefined,
-    }
-  );
-
-  await ServicesRepository.findOneAndUpdate(
-    {
-      serviceId: scheduledReminder.serviceId,
-      customerId: scheduledReminder.customerId,
-    },
-    {
-      status: whatsappMessageReminderResponse.status,
     }
   );
 };

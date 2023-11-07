@@ -32,13 +32,9 @@ const WhatsappNotificationsSchema = new Schema({
   },
   whatsappStatus: {
     type: String,
-    required: false,
-    index: true,
   },
   timestamp: {
     type: String,
-    required: false,
-    index: true,
   },
   creationDate: {
     type: Date,

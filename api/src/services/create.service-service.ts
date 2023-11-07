@@ -18,6 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ContainerClient } from "@azure/storage-blob";
 import { ScheduledMessagesRepository } from "../db/models/ScheduledMessagesRepository";
 import ScheduledMessagesStatus from "../constants/enums/ScheduledMessagesStatus";
+import { scheduleReminderMessage } from "./reminders-service";
 
 export const createService = async (
   userId: string,
@@ -26,6 +27,15 @@ export const createService = async (
   files: any
 ): Promise<CreateServiceResponse> => {
   const serviceId = uuidv4();
+
+  if (typeof request.sendReminder === "string") {
+    request.sendReminder = JSON.parse(request.sendReminder);
+  }
+  if (typeof request.reminderMessageAdvanceTime === "string") {
+    request.reminderMessageAdvanceTime = JSON.parse(
+      request.reminderMessageAdvanceTime
+    );
+  }
 
   const customer = await CustomersRepository.findOne({
     customerId: customerId,
@@ -47,25 +57,7 @@ export const createService = async (
       afterNotes: request.afterNotes,
     });
 
-    if (request.sendReminder) {
-      const serviceDatetime = new Date(request.date);
-      const now = new Date();
-      const scheduledDateTime = new Date(
-        serviceDatetime.getTime() -
-          request.reminderMessageAdvanceTime * 60 * 60 * 1000
-      );
-      if (scheduledDateTime.getTime() > now.getTime()) {
-        const scheduledMessageDocument =
-          await ScheduledMessagesRepository.create({
-            scheduledMessageId: uuidv4(),
-            serviceId: serviceId,
-            customerId: customerId,
-            creationDate: now,
-            scheduledDateTime: scheduledDateTime,
-            status: ScheduledMessagesStatus.Scheduled,
-          });
-      }
-    }
+    scheduleReminderMessage();
 
     const response = new CreateServiceResponse(
       serviceDocument.serviceId,

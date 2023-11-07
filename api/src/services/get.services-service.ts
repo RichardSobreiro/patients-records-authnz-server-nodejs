@@ -343,7 +343,10 @@ export const getServicesAgenda = async (
       serviceDocument.date,
       getServiceTypesResponse,
       serviceDocument.durationHours,
-      serviceDocument.durationMinutes
+      serviceDocument.durationMinutes,
+      serviceDocument.status,
+      serviceDocument.sendReminder,
+      serviceDocument.reminderMessageAdvanceTime
     );
 
     response.servicesList?.push(getServiceResponse);

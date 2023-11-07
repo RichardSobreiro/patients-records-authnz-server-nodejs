@@ -18,7 +18,10 @@ export class GetServiceAgendaResponse {
     public date: Date,
     public serviceTypes: GetServiceTypeAgendaResponse[],
     public durationHours: number,
-    public durationMinutes: number
+    public durationMinutes: number,
+    public status: string,
+    public sendReminder: boolean,
+    public reminderMessageAdvanceTime: number
   ) {}
 }
 

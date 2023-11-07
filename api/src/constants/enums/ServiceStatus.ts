@@ -1,9 +1,9 @@
 /** @format */
 
 enum ServiceStatus {
-  Confirmed = "confirmed",
-  Unconfirmed = "unconfirmed",
-  Canceled = "canceled",
+  Confirmed = "Confirmed",
+  Unconfirmed = "Unconfirmed",
+  Canceled = "Canceled",
 }
 
 export default ServiceStatus;

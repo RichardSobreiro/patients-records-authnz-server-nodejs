@@ -50,26 +50,7 @@ export const updateService = async (
     }
   );
 
-  if (request.sendReminder) {
-    const serviceDatetime = new Date(request.date);
-    const now = new Date();
-    const scheduledDateTime = new Date(
-      serviceDatetime.getTime() -
-        request.reminderMessageAdvanceTime * 60 * 60 * 1000
-    );
-    if (scheduledDateTime.getTime() > now.getTime()) {
-      const scheduledMessageDocument = await ScheduledMessagesRepository.create(
-        {
-          scheduledMessageId: uuidv4(),
-          serviceId: serviceId,
-          customerId: customerId,
-          creationDate: now,
-          scheduledDateTime: scheduledDateTime,
-          status: ScheduledMessagesStatus.Scheduled,
-        }
-      );
-    }
-  }
+  scheduleReminderMessage();
 
   const response = new UpdateServiceResponse(
     serviceId,

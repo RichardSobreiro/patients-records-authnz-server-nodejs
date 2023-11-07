@@ -7,6 +7,8 @@ import { SendAppointmentReminderMessageRequest } from "../models/whatsapp/SendAp
 import { SendAppointmentReminderMessageResponse } from "../models/whatsapp/SendAppointmentReminderMessageResponse";
 import { WhatsappMessageResponsesRepository } from "../db/models/WhatsappMessageResponsesRepository";
 import ScheduledMessagesStatus from "../constants/enums/ScheduledMessagesStatus";
+import { ScheduledMessagesRepository } from "../db/models/ScheduledMessagesRepository";
+import { ServicesRepository } from "../db/models/ServicesRepository";
 
 export const sendWelcomeMessage = async (request: SendMessageRequest) => {
   try {
@@ -63,11 +65,13 @@ export const sendAppointmentReminderMessage = async (
     request.customerId
   );
   try {
-  } catch (e: any) {
-    const customerPhoneNumber = request.customerPhoneNumber.replace(
-      /[-\._\(\)\+]+/g,
+    let customerPhoneNumber = request.customerPhoneNumber.replace(
+      /[-\._\(\)\+\s]+/g,
       ""
     );
+    if (!customerPhoneNumber.startsWith("55")) {
+      customerPhoneNumber = "55".concat(customerPhoneNumber);
+    }
     const requestResponse = await fetch(
       `${process.env.FACEBOOK_GRAPH_API!}/${process.env
         .DEFAULT_PORTAL_ATENDER_PHONE_NUMBER_ID!}/messages`,
@@ -146,6 +150,8 @@ export const sendAppointmentReminderMessage = async (
       }
       response.errorMessage = `ERROR SENDING MESSAGE - HTTP Response Status: ${requestResponse.status} - HTTP Response Status Text: ${requestResponse.statusText} - HTTP Response Text: ${requestResponseText}`;
     }
+  } catch (e: any) {
+    throw e;
   }
   return response;
 };
@@ -176,16 +182,49 @@ const processWhatsappMesssagesNotification = async (
   change: any
 ) => {
   try {
-    for (const statusObject of change.value.statuses) {
-      const phonenumber = change.value.metadata.display_phone_number;
+    if (change.value.statuses && change.value.statuses.length > 0) {
+      for (const statusObject of change.value.statuses) {
+        const phonenumber = change.value.metadata.display_phone_number;
+        const whatsappNotificationId = entry.id;
+        const wamid = statusObject.id;
+        const whatsappStatus = statusObject.status;
+        const timestamp = statusObject.timestamp;
+
+        const documentExists = await WhatsappNotificationRepository.exists({
+          wamid: wamid,
+          whatsappStatus: whatsappStatus,
+          timestamp: timestamp,
+        });
+
+        if (documentExists === null) {
+          await WhatsappNotificationRepository.insertMany({
+            notificationId: uuidv4(),
+            whatsappNotificationId: whatsappNotificationId,
+            wamid: wamid,
+            whatsappStatus: whatsappStatus,
+            timestamp: timestamp,
+            creationDate: new Date(),
+            type: "messages",
+            phoneNumber: phonenumber,
+            body: JSON.stringify(body),
+          });
+        } else {
+          console.log(
+            `DOCUMENT EXISTS: ${documentExists} - wamid: ${wamid} - whatsappStatus: ${whatsappStatus} - timestamp: ${timestamp}`
+          );
+        }
+      }
+    }
+
+    if (change.value.messages && change.value.messages.length > 0) {
+      const wamid = change.value.messages[0].context.id;
+      const payload = change.value.messages[0].button.payload;
+      const timestamp = change.value.messages[0].timestamp;
       const whatsappNotificationId = entry.id;
-      const wamid = statusObject.id;
-      const whatsappStatus = statusObject.status;
-      const timestamp = statusObject.timestamp;
+      const phonenumber = change.value.metadata.display_phone_number;
 
       const documentExists = await WhatsappNotificationRepository.exists({
         wamid: wamid,
-        whatsappStatus: whatsappStatus,
         timestamp: timestamp,
       });
 
@@ -194,7 +233,6 @@ const processWhatsappMesssagesNotification = async (
           notificationId: uuidv4(),
           whatsappNotificationId: whatsappNotificationId,
           wamid: wamid,
-          whatsappStatus: whatsappStatus,
           timestamp: timestamp,
           creationDate: new Date(),
           type: "messages",
@@ -203,8 +241,54 @@ const processWhatsappMesssagesNotification = async (
         });
       } else {
         console.log(
-          `DOCUMENT EXISTS: ${documentExists} - wamid: ${wamid} - whatsappStatus: ${whatsappStatus} - timestamp: ${timestamp}`
+          `DOCUMENT EXISTS: ${documentExists} - wamid: ${wamid} - timestamp: ${timestamp}`
         );
+      }
+
+      const existingWhatsappMessageResponsesDocument =
+        await WhatsappMessageResponsesRepository.findOne({
+          whatsappMessageId: wamid,
+        });
+      if (existingWhatsappMessageResponsesDocument) {
+        const existingPendingScheduledReminderDocument =
+          await ScheduledMessagesRepository.findOne({
+            customerId: existingWhatsappMessageResponsesDocument.customerId,
+            serviceId: existingWhatsappMessageResponsesDocument.serviceId,
+            status: ScheduledMessagesStatus.Sent,
+          });
+
+        if (existingPendingScheduledReminderDocument) {
+          let newStatus: string | undefined = undefined;
+          if (payload === "SIM") {
+            newStatus = ScheduledMessagesStatus.Confirmed;
+          } else if (payload === "NÃO") {
+            newStatus = ScheduledMessagesStatus.Canceled;
+          } else {
+            newStatus = undefined;
+          }
+
+          if (newStatus) {
+            await ScheduledMessagesRepository.findOneAndUpdate(
+              {
+                scheduledMessageId:
+                  existingPendingScheduledReminderDocument.scheduledMessageId,
+              },
+              {
+                status: newStatus,
+              }
+            );
+
+            await ServicesRepository.findOneAndUpdate(
+              {
+                customerId: existingPendingScheduledReminderDocument.customerId,
+                serviceId: existingPendingScheduledReminderDocument.serviceId,
+              },
+              {
+                status: newStatus,
+              }
+            );
+          }
+        }
       }
     }
   } catch (e: any) {
