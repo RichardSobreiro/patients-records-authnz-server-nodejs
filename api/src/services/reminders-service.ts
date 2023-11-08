@@ -14,6 +14,8 @@ import { CustomersRepository } from "../db/models/CustomersRepository";
 import { ServicesRepository } from "../db/models/ServicesRepository";
 import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
 import { CreateServiceRequest } from "../models/customers/services/CreateServiceRequest";
+import { AccountRepository } from "../db/models/AccountRepository";
+import Gender from "../constants/enums/Gender";
 
 export const scheduleReminderMessage = async (
   customerId: string,
@@ -32,23 +34,43 @@ export const scheduleReminderMessage = async (
         await ScheduledMessagesRepository.findOne({
           serviceId: serviceId,
           customerId: customerId,
+          $or: [
+            { status: ScheduledMessagesStatus.Scheduled },
+            { status: ScheduledMessagesStatus.Error },
+          ],
         });
       if (!alreadyScheduledMessageDocument) {
-        const scheduledMessageDocument =
-          await ScheduledMessagesRepository.create({
-            scheduledMessageId: uuidv4(),
+        await ScheduledMessagesRepository.create({
+          scheduledMessageId: uuidv4(),
+          serviceId: serviceId,
+          customerId: customerId,
+          creationDate: now,
+          scheduledDateTime: scheduledDateTime,
+          status: ScheduledMessagesStatus.Scheduled,
+        });
+      } else {
+        await ScheduledMessagesRepository.findOneAndUpdate(
+          {
+            scheduledMessageId:
+              alreadyScheduledMessageDocument.scheduledMessageId,
             serviceId: serviceId,
             customerId: customerId,
-            creationDate: now,
+          },
+          {
             scheduledDateTime: scheduledDateTime,
             status: ScheduledMessagesStatus.Scheduled,
-          });
+          }
+        );
       }
     }
   } else {
     await ScheduledMessagesRepository.findOneAndRemove({
       serviceId: serviceId,
       customerId: customerId,
+      $or: [
+        { status: ScheduledMessagesStatus.Scheduled },
+        { status: ScheduledMessagesStatus.Error },
+      ],
     });
   }
 };
@@ -112,6 +134,11 @@ export const processScheduledReminders = async (): Promise<void> => {
 };
 
 const processScheduledMessage = async (scheduledReminder: ScheduledMessage) => {
+  const now = new Date();
+  if (scheduledReminder.scheduledDateTime.getTime() > now.getTime()) {
+    return;
+  }
+
   const customerDocument = await CustomersRepository.findOne({
     customerId: scheduledReminder.customerId,
   });
@@ -145,6 +172,23 @@ const processScheduledMessage = async (scheduledReminder: ScheduledMessage) => {
     );
     return;
   }
+
+  let profissionalName: string = "";
+  const profissionalDocument = await AccountRepository.findOne({
+    email: serviceDocument.userId,
+  });
+  let referTerm = "";
+  if (profissionalDocument.gender === Gender.Female) {
+    referTerm = "Dra.";
+  } else if (profissionalDocument.gender === Gender.Male) {
+    referTerm = "Dr.";
+  } else {
+    referTerm = "";
+  }
+  if (profissionalDocument) {
+    profissionalName = `${referTerm} ${profissionalDocument.username}`;
+  }
+
   const dateTimeWhatsappApiWasInboked = new Date();
   const whatsappMessageReminderResponse = await sendAppointmentReminderMessage(
     new SendAppointmentReminderMessageRequest(
@@ -153,9 +197,12 @@ const processScheduledMessage = async (scheduledReminder: ScheduledMessage) => {
       customerDocument!.phoneNumber!,
       customerDocument!.gender,
       customerDocument!.customerName,
-      "Ana Maria",
+      profissionalName,
       serviceDocument!.date.toLocaleDateString(),
-      serviceDocument!.date.toLocaleTimeString()
+      serviceDocument!.date.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     )
   );
 

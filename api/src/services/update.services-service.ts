@@ -1,8 +1,6 @@
 /** @format */
-import { ServiceTypeRepository } from "../db/models/ServiceTypesRepository";
 import { ServicesRepository } from "../db/models/ServicesRepository";
 import { ServicePhotosRepository } from "../db/models/ServicePhotosRepository";
-import { CustomersRepository } from "../db/models/CustomersRepository";
 import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
 import {
   UpdateServicePhotosResponse,
@@ -17,8 +15,7 @@ import {
 
 import { v4 as uuidv4 } from "uuid";
 import { ContainerClient } from "@azure/storage-blob";
-import { ScheduledMessagesRepository } from "../db/models/ScheduledMessagesRepository";
-import ScheduledMessagesStatus from "../constants/enums/ScheduledMessagesStatus";
+import { scheduleReminderMessage } from "./reminders-service";
 
 export const updateService = async (
   userId: string,
@@ -50,7 +47,7 @@ export const updateService = async (
     }
   );
 
-  scheduleReminderMessage();
+  scheduleReminderMessage(customerId, serviceId, request);
 
   const response = new UpdateServiceResponse(
     serviceId,

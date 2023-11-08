@@ -16,8 +16,6 @@ import {
 
 import { v4 as uuidv4 } from "uuid";
 import { ContainerClient } from "@azure/storage-blob";
-import { ScheduledMessagesRepository } from "../db/models/ScheduledMessagesRepository";
-import ScheduledMessagesStatus from "../constants/enums/ScheduledMessagesStatus";
 import { scheduleReminderMessage } from "./reminders-service";
 
 export const createService = async (
@@ -57,7 +55,7 @@ export const createService = async (
       afterNotes: request.afterNotes,
     });
 
-    scheduleReminderMessage();
+    scheduleReminderMessage(customerId, serviceId, request);
 
     const response = new CreateServiceResponse(
       serviceDocument.serviceId,
