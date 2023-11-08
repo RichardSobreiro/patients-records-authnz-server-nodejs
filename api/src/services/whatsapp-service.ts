@@ -149,6 +149,13 @@ export const sendAppointmentReminderMessage = async (
         requestResponseText = "Error parsing request response text";
       }
       response.errorMessage = `ERROR SENDING MESSAGE - HTTP Response Status: ${requestResponse.status} - HTTP Response Status Text: ${requestResponse.statusText} - HTTP Response Text: ${requestResponseText}`;
+
+      const now = new Date();
+      console.log(
+        `${now.toISOString()} - API ERROR - sendAppointmentReminderMessage: ${
+          response.errorMessage
+        }`
+      );
     }
   } catch (e: any) {
     throw e;

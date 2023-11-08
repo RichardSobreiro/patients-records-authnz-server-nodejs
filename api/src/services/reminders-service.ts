@@ -136,7 +136,18 @@ export const processScheduledReminders = async (): Promise<void> => {
 const processScheduledMessage = async (scheduledReminder: ScheduledMessage) => {
   const now = new Date();
   if (scheduledReminder.scheduledDateTime.getTime() > now.getTime()) {
+    console.log(
+      `${now.toISOString()} - Service time greather then now - ServiceId ${
+        scheduledReminder.serviceId
+      }`
+    );
     return;
+  } else {
+    console.log(
+      `${now.toISOString()} - Service time smaller then now - ServiceId ${
+        scheduledReminder.serviceId
+      }`
+    );
   }
 
   const customerDocument = await CustomersRepository.findOne({

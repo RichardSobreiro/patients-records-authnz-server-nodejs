@@ -217,7 +217,7 @@ export default () => {
   //------------------------------------------------------------------------------------------------------
   const { sendReminders } = remindersController();
   // Messages
-  router.post("/messages/reminders/process", sendReminders);
+  router.post("/messages/reminders/process", authenticate, sendReminders);
 
   return router;
 };

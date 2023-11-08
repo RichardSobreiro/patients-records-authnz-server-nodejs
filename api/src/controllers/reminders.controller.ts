@@ -11,7 +11,8 @@ export default (): { [key: string]: Middleware } => ({
       ctx.status = 200;
       ctx.message = "OK";
     } catch (e: any) {
-      console.log(e);
+      const now = new Date();
+      console.log(`${now.toLocaleDateString()} - ${e}`);
       ctx.status = 500;
       ctx.message = "Internal Server Error";
       ctx.response.body = { message: e.message, stackTrace: e.stack };

@@ -40,15 +40,21 @@ const start = async () => {
       await next();
     } catch (err: any) {
       err.status = err.statusCode || err.status || 500;
+      const now = new Date();
       console.log(
-        `API ERROR: ${err.status} - ${err.message || err.statusText}`
+        `${now.toISOString()} - API ERROR: ${err.status} - ${
+          err.message || err.statusText
+        }`
       );
       throw err;
     }
   });
 
   app.listen(process.env.PORT_API, () => {
-    console.log(`api listening on port ${process.env.PORT_API}`);
+    const now = new Date();
+    console.log(
+      `${now.toISOString()} - api listening on port ${process.env.PORT_API}`
+    );
   });
 };
 
