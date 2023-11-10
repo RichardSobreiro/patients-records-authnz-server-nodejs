@@ -22,7 +22,7 @@ export default (oidc: Provider) => {
     getUserSettings,
   } = authController(oidc);
 
-  router.post("/users", bodyParser, register);
+  router.post("/users", register);
 
   router.post("/users/settings", authenticate, bodyParser, updateUserSettings);
   router.get("/users/settings", authenticate, bodyParser, getUserSettings);

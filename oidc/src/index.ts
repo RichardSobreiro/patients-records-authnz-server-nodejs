@@ -11,6 +11,7 @@ import connectMongodb from "./db/mongodb/connection";
 import router from "./routes";
 import * as dotenv from "dotenv";
 import render from "koa-ejs";
+import bodyparser from "koa-bodyparser";
 
 dotenv.config();
 
@@ -64,7 +65,7 @@ const start = async () => {
     );
     await next();
   });
-
+  app.use(bodyparser());
   app.use(router(provider).routes());
   app.use(mount(provider.app));
 

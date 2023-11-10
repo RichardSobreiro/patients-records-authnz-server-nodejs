@@ -5,6 +5,7 @@ import { Provider } from "oidc-provider";
 import * as accountService from "../services/account-persist.service";
 import { CreateUserRequest } from "../models/CreateUserRequest";
 import { AditionalInfoRequest } from "../models/AditionalInfoRequest";
+import { v4 as uuidv4 } from "uuid";
 
 function debug(obj: any) {
   return Object.entries(obj)
@@ -55,7 +56,9 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
         status: 422,
       });
     } else {
-      await accountService.set(body.email, {
+      const userId = uuidv4();
+      await accountService.set(userId, {
+        userId: userId,
         email: body.email,
         username: body.username,
         password: body.password,

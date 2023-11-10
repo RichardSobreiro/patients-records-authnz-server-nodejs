@@ -54,7 +54,8 @@ export const passwordHandler: Middleware = async function (ctx, next) {
   ctx.oidc.entity("Account", account);
 
   const session = new ctx.oidc.provider.Session({
-    accountId: account.accountId,
+    //accountId: account.accountId,
+    accountId: doc.userId,
   });
   session.ensureClientContainer(ctx.oidc.client.clientId);
 
@@ -62,7 +63,8 @@ export const passwordHandler: Middleware = async function (ctx, next) {
 
   const grant = new ctx.oidc.provider.Grant({
     clientId: ctx.oidc.client.clientId,
-    accountId: account.accountId,
+    //accountId: account.accountId,
+    accountId: doc.userId,
     sessionUid: session.uid,
   });
 
@@ -85,7 +87,8 @@ export const passwordHandler: Middleware = async function (ctx, next) {
   const password = {
     clientId: grant.clientId,
     grantId: grant.jti,
-    accountId: grant.accountId,
+    //accountId: grant.accountId,
+    accountId: doc.userId,
     expiresWithSession: await expiresWithSession(ctx, {
       scopes: scopeSet,
     }),
@@ -116,7 +119,8 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     ctx.oidc.provider;
 
   const at = new AccessToken({
-    accountId: account.accountId,
+    //accountId: account.accountId,
+    accountId: doc.userId,
     client: ctx.oidc.client,
     expiresWithSession: password.expiresWithSession,
     grantId: password.grantId,
@@ -171,7 +175,8 @@ export const passwordHandler: Middleware = async function (ctx, next) {
   let refreshToken: string | undefined;
   if (await issueRefreshToken(ctx, ctx.oidc.client, password)) {
     const rt = new RefreshToken({
-      accountId: account.accountId,
+      //accountId: account.accountId,
+      accountId: doc.userId,
       acr: password.acr,
       amr: password.amr,
       authTime: password.authTime,
@@ -239,6 +244,7 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     refresh_token: refreshToken,
     scope: at.scope,
     token_type: at.tokenType,
+    userId: doc.userId,
     username: doc.username,
     email: doc.email,
     userCreationCompleted: doc.userCreationCompleted,

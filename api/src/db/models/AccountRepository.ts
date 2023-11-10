@@ -3,14 +3,10 @@
 import mongoose, { Schema } from "mongoose";
 
 const AccountSchema = new Schema({
-  username: {
+  userId: {
     type: String,
     unique: true,
     required: true,
-  },
-  password: {
-    type: String,
-    required: false,
   },
   email: {
     type: String,
@@ -20,6 +16,30 @@ const AccountSchema = new Schema({
   emailVerified: {
     type: Boolean,
     default: false,
+  },
+  username: {
+    type: String,
+    required: true,
+  },
+  userNameComplete: {
+    type: String,
+    required: false,
+  },
+  userBirthdate: {
+    type: Date,
+    required: false,
+  },
+  userCPF: {
+    type: String,
+    required: false,
+  },
+  gender: {
+    type: String,
+    required: false,
+  },
+  password: {
+    type: String,
+    required: false,
   },
   userCreationCompleted: {
     type: Boolean,
@@ -35,24 +55,12 @@ const AccountSchema = new Schema({
     type: String,
     required: false,
   },
-  gender: {
-    type: String,
-    required: false,
-  },
   companyCNPJ: {
     type: String,
     required: false,
   },
   companyNumberOfEmployees: {
     type: Number,
-    required: false,
-  },
-  userNameComplete: {
-    type: String,
-    required: false,
-  },
-  userCPF: {
-    type: String,
     required: false,
   },
   phoneAreaCode: {
