@@ -63,6 +63,14 @@ const AccountSchema = new Schema({
     type: Number,
     required: false,
   },
+  referPronoun: {
+    type: String,
+    required: false,
+  },
+  messageProfessionalName: {
+    type: String,
+    required: false,
+  },
   phoneAreaCode: {
     type: String,
     required: false,
