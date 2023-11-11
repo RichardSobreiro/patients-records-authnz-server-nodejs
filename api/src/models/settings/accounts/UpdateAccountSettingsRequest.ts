@@ -6,8 +6,14 @@ class UpdateAccountSettingsRequest {
     public userNameComplete: string,
     public username: string,
     public userBirthdate: Date,
+    public userGender: string,
     public userCPF: string,
     public userCreationCompleted: boolean,
+
+    public phoneNumber: string,
+    public phoneNumberVerified: boolean,
+    public email: string,
+    public emailVerified: boolean,
 
     //public paymentProcessingInfo: PaymentProcessingResponse,
 

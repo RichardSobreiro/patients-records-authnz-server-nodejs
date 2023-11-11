@@ -16,8 +16,13 @@ export const getAccountSettings = async (
       accountDocument.userNameComplete,
       accountDocument.username,
       accountDocument.userBirthdate,
+      accountDocument.gender,
       accountDocument.userCPF,
       accountDocument.userCreationCompleted,
+      accountDocument.phoneNumber,
+      accountDocument.phoneNumberVerified,
+      accountDocument.email,
+      accountDocument.emailVerified,
       accountDocument.userAddressCEP,
       accountDocument.userAddressStreet,
       accountDocument.userAddressNumber,
@@ -50,15 +55,17 @@ export const updateAccountSettings = async (
       userCreationCompleted = false;
     }
   }
-  await AccountRepository.findOneAndUpdate(
+  const beforeUpdateDoc = await AccountRepository.findOneAndUpdate(
     { userId: userId },
     {
       userPlanId: request.userPlanId,
       userNameComplete: request.userNameComplete,
       username: request.username,
       userBirthdate: request.userBirthdate,
+      gender: request.userGender,
       userCPF: request.userCPF,
-      userCreationCompleted: false,
+      phoneNumber: request.phoneNumber,
+      email: request.email,
       userAddressCEP: request.userAddressCEP,
       userAddressStreet: request.userAddressStreet,
       userAddressNumber: request.userAddressNumber,
@@ -69,6 +76,7 @@ export const updateAccountSettings = async (
       companyName: request.companyName,
       companyCNPJ: request.companyCNPJ,
       companyNumberOfEmployees: request.companyNumberOfEmployees,
+      userCreationCompleted: false,
     }
   );
 
@@ -77,8 +85,13 @@ export const updateAccountSettings = async (
     request.userNameComplete,
     request.username,
     request.userBirthdate,
+    request.userGender,
     request.userCPF,
     false,
+    request.phoneNumber,
+    beforeUpdateDoc.phoneNumberVerified,
+    request.email,
+    beforeUpdateDoc.emailVerified,
     request.userAddressCEP,
     request.userAddressStreet,
     request.userAddressNumber,

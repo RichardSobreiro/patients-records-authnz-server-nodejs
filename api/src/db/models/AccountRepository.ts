@@ -71,6 +71,10 @@ const AccountSchema = new Schema({
     type: String,
     required: false,
   },
+  phoneNumberVerified: {
+    type: String,
+    required: false,
+  },
   userAddressCEP: {
     type: String,
     required: false,
