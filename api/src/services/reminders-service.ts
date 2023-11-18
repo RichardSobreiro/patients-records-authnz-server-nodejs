@@ -1,7 +1,7 @@
 /** @format */
 
-import RemindersHandlerExecutionStatus from "../constants/enums/ReminderExecutionHandlerStatus";
-import ScheduledMessagesStatus from "../constants/enums/ScheduledMessagesStatus";
+import RemindersHandlerExecutionStatus from "../enums/ReminderExecutionHandlerStatus";
+import ScheduledMessagesStatus from "../enums/ScheduledMessagesStatus";
 import { RemindersHandlerExecutionRepository } from "../db/models/RemindersHandlerExecutionsRepository";
 import {
   ScheduledMessage,
@@ -15,7 +15,7 @@ import { ServicesRepository } from "../db/models/ServicesRepository";
 import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
 import { CreateServiceRequest } from "../models/customers/services/CreateServiceRequest";
 import { AccountRepository } from "../db/models/AccountRepository";
-import Gender from "../constants/enums/Gender";
+import Gender from "../enums/Gender";
 
 export const scheduleReminderMessage = async (
   customerId: string,

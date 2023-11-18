@@ -17,7 +17,7 @@ import {
   GetServiceTypeAgendaResponse,
   GetServicesAgendaResponse,
 } from "../models/customers/services/GetServiceAgendaResponse ";
-import ServiceStatus from "../constants/enums/ServiceStatus";
+import ServiceStatus from "../enums/ServiceStatus";
 
 export const getServiceById = async (
   customerId: string,

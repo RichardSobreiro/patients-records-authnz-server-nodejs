@@ -1,6 +1,6 @@
 /** @format */
 
-import ScheduledMessagesStatus from "../../constants/enums/ScheduledMessagesStatus";
+import ScheduledMessagesStatus from "../../enums/ScheduledMessagesStatus";
 
 export class SendAppointmentReminderMessageResponse {
   constructor(
