@@ -1,18 +1,7 @@
 /** @format */
 
 import mongoose, { Schema } from "mongoose";
-import PaymentInstalmentsStatus from "../../enums/PaymentStatus";
-
-interface PaymentInstalments {
-  paymentInstalmentsId: string;
-  paymentId: string;
-  userId: string;
-  creationDate: Date;
-  expireDate?: Date;
-  instalmentNumber: string;
-  status: PaymentInstalmentsStatus;
-  paymentProcessorResponse?: any;
-}
+import PaymentInstalmentsStatus from "../../enums/PaymentInstalmentsStatus";
 
 const PaymentInstalmentsSchema = new Schema({
   paymentInstalmentsId: {
@@ -21,7 +10,7 @@ const PaymentInstalmentsSchema = new Schema({
     index: true,
     unique: true,
   },
-  paymentId: {
+  paymentUserMethodId: {
     type: String,
     required: true,
     index: true,
@@ -47,11 +36,27 @@ const PaymentInstalmentsSchema = new Schema({
     type: String,
     required: true,
   },
+  statusDescription: {
+    type: String,
+    required: true,
+  },
   paymentProcessorResponse: {
     type: Object,
     required: false,
   },
 });
+
+interface PaymentInstalments {
+  paymentInstalmentsId: string;
+  paymentUserMethodId: string;
+  userId: string;
+  creationDate: Date;
+  expireDate?: Date;
+  instalmentNumber: string;
+  status: PaymentInstalmentsStatus;
+  statusDescription: string;
+  paymentProcessorResponse?: any;
+}
 
 export const PaymentInstalmentsRepository = mongoose.model<PaymentInstalments>(
   "PaymentInstalments",

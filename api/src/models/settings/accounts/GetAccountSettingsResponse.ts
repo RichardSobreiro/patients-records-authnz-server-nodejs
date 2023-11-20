@@ -1,5 +1,7 @@
 /** @format */
 
+import PaymentInstalmentsStatus from "../../../enums/PaymentInstalmentsStatus";
+
 class GetAccountSettingsResponse {
   constructor(
     public userPlanId: string,
@@ -18,7 +20,7 @@ class GetAccountSettingsResponse {
     public referPronoun: string,
     public messageProfessionalName: string,
 
-    //public paymentProcessingInfo: PaymentProcessingResponse,
+    public paymentStatus: PaymentInstalmentsStatus,
 
     public userAddressCEP: string,
     public userAddressStreet: string,
@@ -27,6 +29,7 @@ class GetAccountSettingsResponse {
     public userAddressCity: string,
     public userAddressComplement: string,
     public userAddressState: string,
+
     public companyName?: string,
     public companyCNPJ?: string,
     public companyNumberOfEmployees?: string

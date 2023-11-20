@@ -1,10 +1,10 @@
 /** @format */
 
-enum PaymentStatus {
+enum PaymentsUserMethodStatus {
   OK = "OK",
   PENDING = "PENDING",
   ERROR = "ERROR",
   CANCELED = "CANCELED",
 }
 
-export default PaymentStatus;
+export default PaymentsUserMethodStatus;

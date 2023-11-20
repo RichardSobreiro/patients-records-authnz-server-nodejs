@@ -1,26 +1,11 @@
 /** @format */
 
 import mongoose, { Schema } from "mongoose";
-
-interface Payments {
-  paymentId: string;
-  userId: string;
-  creationDate: Date;
-  paymentMethodId: string;
-  description: string;
-  paymentStatus: string;
-  expireDate?: Date;
-  creditCard?: {
-    numberEncrypted: string;
-    cvc: string;
-    holderName: string;
-    expireData: string;
-    brand: string;
-  };
-}
+import PaymentsUserMethodStatus from "../../enums/PaymentsUserMethodStatus";
+import PaymentMethods from "../../enums/PaymentMethods";
 
 const PaymentsSchema = new Schema({
-  paymentId: {
+  paymentsUserMethodId: {
     type: String,
     unique: true,
     required: true,
@@ -37,11 +22,11 @@ const PaymentsSchema = new Schema({
     type: Number,
     required: true,
   },
-  description: {
+  statusDescription: {
     type: String,
     required: true,
   },
-  paymentStatus: {
+  status: {
     type: String,
     required: true,
   },
@@ -50,6 +35,10 @@ const PaymentsSchema = new Schema({
   },
   creditCard: {
     numberEncrypted: {
+      type: String,
+      required: false,
+    },
+    fourFinalNumbers: {
       type: String,
       required: false,
     },
@@ -72,7 +61,25 @@ const PaymentsSchema = new Schema({
   },
 });
 
-export const PaymentsRepository = mongoose.model<Payments>(
-  "Payments",
+interface PaymentsUserMethod {
+  paymentsUserMethodId: string;
+  userId: string;
+  creationDate: Date;
+  paymentMethodId: PaymentMethods;
+  status: PaymentsUserMethodStatus;
+  statusDescription: string;
+  expireDate?: Date;
+  creditCard?: {
+    numberEncrypted: string;
+    fourFinalNumbers: string;
+    cvc: string;
+    holderName: string;
+    expireData: string;
+    brand: string;
+  };
+}
+
+export const PaymentsUserMethodRepository = mongoose.model<PaymentsUserMethod>(
+  "PaymentsUserMethod",
   PaymentsSchema
 );

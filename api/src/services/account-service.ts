@@ -1,6 +1,8 @@
 /** @format */
 
 import { AccountRepository } from "../db/models/AccountRepository";
+import { PaymentInstalmentsRepository } from "../db/models/PaymentInstalmentsRepository";
+import PaymentInstalmentsStatus from "../enums/PaymentInstalmentsStatus";
 import GetAccountSettingsResponse from "../models/settings/accounts/GetAccountSettingsResponse";
 import UpdateAccountSettingsRequest from "../models/settings/accounts/UpdateAccountSettingsRequest";
 import UpdateAccountSettingsResponse from "../models/settings/accounts/UpdateAccountSettingsResponse";
@@ -11,6 +13,23 @@ export const getAccountSettings = async (
   const accountDocument = await AccountRepository.findOne({ userId: userId });
 
   if (accountDocument) {
+    const paymentInstalmentsDocs = await PaymentInstalmentsRepository.find({
+      userId: userId,
+    }).sort({ expireDate: "desc", creationDate: "desc" });
+
+    let paymentStatus: PaymentInstalmentsStatus =
+      PaymentInstalmentsStatus.PENDING;
+    if (
+      paymentInstalmentsDocs?.length > 0 &&
+      paymentInstalmentsDocs[0].status === PaymentInstalmentsStatus.OK
+    ) {
+      paymentStatus = PaymentInstalmentsStatus.OK;
+    } else if (paymentInstalmentsDocs?.length > 0) {
+      paymentStatus = paymentInstalmentsDocs[0].status;
+    } else {
+      paymentStatus = PaymentInstalmentsStatus.PENDING;
+    }
+
     return new GetAccountSettingsResponse(
       accountDocument.userPlanId,
       accountDocument.userNameComplete,
@@ -25,6 +44,7 @@ export const getAccountSettings = async (
       accountDocument.emailVerified,
       accountDocument.referPronoun,
       accountDocument.messageProfessionalName,
+      paymentStatus,
       accountDocument.userAddressCEP,
       accountDocument.userAddressStreet,
       accountDocument.userAddressNumber,

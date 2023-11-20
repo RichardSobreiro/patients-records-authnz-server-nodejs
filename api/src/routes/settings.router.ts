@@ -1,11 +1,8 @@
 /** @format */
 
 import Router from "koa-router";
-import multer from "@koa/multer";
 import accountSettingsController from "../controllers/accounts-settings.controller";
 import { authenticate } from "../middlewares/auth.middleware";
-
-const upload = multer();
 
 export default () => {
   const router = new Router();
