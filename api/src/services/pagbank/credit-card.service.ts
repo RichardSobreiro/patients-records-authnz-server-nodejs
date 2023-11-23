@@ -30,7 +30,7 @@ export const createCreditCardPayment = async (
     recurring: {
       type: "INITIAL",
     },
-    notification_urls: ["https://ap.portal-atender.com/payments/webhook"],
+    notification_urls: [`${process.env.PAYMENTS_WEBHOOK}`],
   };
 
   const response = await fetch(`${process.env.PAG_BANK_ORDERS_API_URL}`, {

@@ -7,7 +7,7 @@ class CreateCreditCardPaymentMethodRequest {
     public cvc: string,
     public name: string,
     public expiry: string,
-    public number: string,
+    public encryptedCard: string,
     public fourFinalNumbers: string,
     public type: string
   ) {}
@@ -16,6 +16,7 @@ class CreateCreditCardPaymentMethodRequest {
 class CreateUserPaymentMethodRequest {
   constructor(
     public paymentMethodId: PaymentMethods,
+    public isDefault: boolean,
     public creditCard?: CreateCreditCardPaymentMethodRequest
   ) {}
 }

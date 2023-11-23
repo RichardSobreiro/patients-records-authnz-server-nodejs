@@ -3,17 +3,17 @@
 import PaymentMethods from "../../../enums/PaymentMethods";
 import PaymentsUserMethodStatus from "../../../enums/PaymentsUserMethodStatus";
 
-export class CreateCreditCardPaymentMethodResponse {
+export class GetCreditCardUserPaymentMethodResponse {
   constructor(
     public cvc: string,
     public name: string,
     public expiry: string,
     public fourFinalNumbers: string,
-    public type: string
+    public type: string | undefined
   ) {}
 }
 
-class CreateUserPaymentMethodResponse {
+export class GetUserPaymentMethodResponse {
   constructor(
     public paymentUserMethodId: string,
     public userId: string,
@@ -23,8 +23,16 @@ class CreateUserPaymentMethodResponse {
     public status: PaymentsUserMethodStatus,
     public statusDescription: string,
     public expireDate?: Date,
-    public creditCard?: CreateCreditCardPaymentMethodResponse
+    public creditCard?: GetCreditCardUserPaymentMethodResponse
   ) {}
 }
 
-export default CreateUserPaymentMethodResponse;
+class GetPaymentUserMethodResponse {
+  constructor(
+    public defaultPaymentMethod?: PaymentMethods,
+    public defaultPaymentUserMethodId?: string,
+    public paymentMethods?: GetUserPaymentMethodResponse[]
+  ) {}
+}
+
+export default GetPaymentUserMethodResponse;

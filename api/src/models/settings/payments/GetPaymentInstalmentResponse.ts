@@ -2,7 +2,7 @@
 
 import PaymentInstalmentsStatus from "../../../enums/PaymentInstalmentsStatus";
 
-export class CreatePaymentResponse {
+class GetPaymentInstalmentResponse {
   constructor(
     public paymentInstalmentsId: string,
     public paymentUserMethodId: string,
@@ -15,4 +15,4 @@ export class CreatePaymentResponse {
   ) {}
 }
 
-export default CreatePaymentResponse;
+export default GetPaymentInstalmentResponse;

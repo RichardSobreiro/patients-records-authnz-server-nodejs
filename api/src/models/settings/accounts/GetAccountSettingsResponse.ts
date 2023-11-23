@@ -1,6 +1,8 @@
 /** @format */
 
 import PaymentInstalmentsStatus from "../../../enums/PaymentInstalmentsStatus";
+import GetPaymentInstalmentResponse from "../payments/GetPaymentInstalmentResponse";
+import GetPaymentUserMethodResponse from "../payments/GetPaymentUserMethodResponse";
 
 class GetAccountSettingsResponse {
   constructor(
@@ -20,8 +22,6 @@ class GetAccountSettingsResponse {
     public referPronoun: string,
     public messageProfessionalName: string,
 
-    public paymentStatus: PaymentInstalmentsStatus,
-
     public userAddressCEP: string,
     public userAddressStreet: string,
     public userAddressNumber: string,
@@ -29,6 +29,10 @@ class GetAccountSettingsResponse {
     public userAddressCity: string,
     public userAddressComplement: string,
     public userAddressState: string,
+
+    public paymentStatus: PaymentInstalmentsStatus,
+    public paymentUserMethods?: GetPaymentUserMethodResponse,
+    public instalments?: GetPaymentInstalmentResponse[],
 
     public companyName?: string,
     public companyCNPJ?: string,

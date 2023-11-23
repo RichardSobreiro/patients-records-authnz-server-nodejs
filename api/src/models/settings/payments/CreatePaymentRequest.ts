@@ -1,7 +1,7 @@
 /** @format */
 
 class CreatePaymentRequest {
-  constructor(public paymentsUserMethodId: string) {}
+  constructor(public paymentUserMethodId: string) {}
 }
 
 export default CreatePaymentRequest;

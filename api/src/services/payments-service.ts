@@ -24,16 +24,46 @@ export const createUserPaymentMethod = async (
     throw new Error("Account not found");
   }
 
+  const existingPaymentMethod = await PaymentsUserMethodRepository.findOne({
+    userId: userId,
+    paymentMethodId: PaymentMethods.CreditCardRecurrent,
+    "creditCard.fourFinalNumbers": paymentRequest.creditCard?.fourFinalNumbers,
+    "creditCard.cvc": paymentRequest.creditCard?.cvc,
+    "creditCard.holderName": paymentRequest.creditCard?.name,
+    "creditCard.expiry": paymentRequest.creditCard?.expiry,
+    "creditCard.brand": paymentRequest.creditCard?.type,
+  });
+  if (existingPaymentMethod) {
+    return new CreateUserPaymentMethodResponse(
+      existingPaymentMethod.paymentUserMethodId,
+      userId,
+      existingPaymentMethod.creationDate,
+      existingPaymentMethod.paymentMethodId,
+      existingPaymentMethod.isDefault,
+      existingPaymentMethod.status,
+      existingPaymentMethod.statusDescription,
+      existingPaymentMethod.expireDate,
+      new CreateCreditCardPaymentMethodResponse(
+        existingPaymentMethod.creditCard?.cvc!,
+        existingPaymentMethod.creditCard?.holderName!,
+        existingPaymentMethod.creditCard?.expiry!,
+        existingPaymentMethod.creditCard?.fourFinalNumbers!,
+        existingPaymentMethod.creditCard?.brand!
+      )
+    );
+  }
+
   const paymentUserMethodDoc = await PaymentsUserMethodRepository.create({
-    paymentsUserMethodId: uuidv4(),
+    paymentUserMethodId: uuidv4(),
     userId: userId,
     creationDate: new Date(),
     paymentMethodId: PaymentMethods.CreditCardRecurrent,
+    isDefault: paymentRequest.isDefault,
     status: PaymentsUserMethodStatus.PENDING,
     statusDescription: "Credit Card Recurrent",
     expireDate: undefined,
     creditCard: {
-      numberEncrypted: paymentRequest.creditCard?.number,
+      encryptedCard: paymentRequest.creditCard?.encryptedCard,
       fourFinalNumbers: paymentRequest.creditCard?.fourFinalNumbers,
       cvc: paymentRequest.creditCard?.cvc,
       holderName: paymentRequest.creditCard?.name,
@@ -43,17 +73,18 @@ export const createUserPaymentMethod = async (
   });
 
   return new CreateUserPaymentMethodResponse(
-    paymentUserMethodDoc.paymentsUserMethodId,
+    paymentUserMethodDoc.paymentUserMethodId,
     userId,
     paymentUserMethodDoc.creationDate,
     paymentUserMethodDoc.paymentMethodId,
+    paymentUserMethodDoc.isDefault,
     paymentUserMethodDoc.status,
     paymentUserMethodDoc.statusDescription,
     paymentUserMethodDoc.expireDate,
     new CreateCreditCardPaymentMethodResponse(
       paymentUserMethodDoc.creditCard?.cvc!,
       paymentUserMethodDoc.creditCard?.holderName!,
-      paymentUserMethodDoc.creditCard?.expireData!,
+      paymentUserMethodDoc.creditCard?.expiry!,
       paymentUserMethodDoc.creditCard?.fourFinalNumbers!,
       paymentUserMethodDoc.creditCard?.brand!
     )
@@ -70,7 +101,7 @@ export const createPayment = async (
   }
 
   const paymentUserMethodDoc = await PaymentsUserMethodRepository.findOne({
-    paymentsUserMethodId: request.paymentsUserMethodId,
+    paymentUserMethodId: request.paymentUserMethodId,
   });
   if (!paymentUserMethodDoc) {
     throw new Error("Payment method not found");
@@ -101,7 +132,7 @@ export const createPayment = async (
 
   const paymentInstalmentDoc = await PaymentInstalmentsRepository.create({
     paymentInstalmentsId: uuidv4(),
-    paymentsUserMethodId: request.paymentsUserMethodId,
+    paymentUserMethodId: request.paymentUserMethodId,
     userId: userId,
     creationDate: new Date(),
     expireDate: undefined,
@@ -110,12 +141,13 @@ export const createPayment = async (
         ? +existingInstalmentsDocs[0].instalmentNumber + 1
         : 1,
     status: PaymentInstalmentsStatus.PENDING,
+    statusDescription: "Instalment payment being processed...",
   });
 
   const response = await createCreditCardPayment(
     paymentInstalmentDoc.paymentInstalmentsId,
     paymentInstalmentDoc.paymentUserMethodId,
-    paymentUserMethodDoc.creditCard?.numberEncrypted!,
+    paymentUserMethodDoc.creditCard?.encryptedCard!,
     paymentUserMethodDoc.creditCard?.cvc!,
     paymentUserMethodDoc.creditCard?.holderName!
   );
@@ -141,7 +173,7 @@ export const createPayment = async (
     );
 
     await PaymentsUserMethodRepository.findOneAndUpdate(
-      { paymentsUserMethodId: request.paymentsUserMethodId },
+      { paymentUserMethodId: request.paymentUserMethodId },
       {
         status: PaymentsUserMethodStatus.OK,
         statusDescription: statusDescriptionPayment,
@@ -151,7 +183,7 @@ export const createPayment = async (
 
     return new CreatePaymentResponse(
       paymentInstalmentDoc.paymentInstalmentsId,
-      request.paymentsUserMethodId,
+      request.paymentUserMethodId,
       userId,
       paymentInstalmentDoc.creationDate,
       paymentInstalmentDoc.instalmentNumber,
@@ -176,7 +208,7 @@ export const createPayment = async (
     );
 
     await PaymentsUserMethodRepository.findOneAndUpdate(
-      { paymentsUserMethodId: request.paymentsUserMethodId },
+      { paymentUserMethodId: request.paymentUserMethodId },
       {
         status: PaymentsUserMethodStatus.ERROR,
         statusDescription: statusDescriptionPayment,
@@ -186,7 +218,7 @@ export const createPayment = async (
 
     return new CreatePaymentResponse(
       paymentInstalmentDoc.paymentInstalmentsId,
-      request.paymentsUserMethodId,
+      request.paymentUserMethodId,
       userId,
       paymentInstalmentDoc.creationDate,
       paymentInstalmentDoc.instalmentNumber,

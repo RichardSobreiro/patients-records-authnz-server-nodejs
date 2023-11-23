@@ -5,7 +5,7 @@ import PaymentsUserMethodStatus from "../../enums/PaymentsUserMethodStatus";
 import PaymentMethods from "../../enums/PaymentMethods";
 
 const PaymentsSchema = new Schema({
-  paymentsUserMethodId: {
+  paymentUserMethodId: {
     type: String,
     unique: true,
     required: true,
@@ -22,6 +22,10 @@ const PaymentsSchema = new Schema({
     type: Number,
     required: true,
   },
+  isDefault: {
+    type: Boolean,
+    required: true,
+  },
   statusDescription: {
     type: String,
     required: true,
@@ -34,7 +38,7 @@ const PaymentsSchema = new Schema({
     type: Date,
   },
   creditCard: {
-    numberEncrypted: {
+    encryptedCard: {
       type: String,
       required: false,
     },
@@ -50,8 +54,8 @@ const PaymentsSchema = new Schema({
       type: String,
       required: false,
     },
-    expireData: {
-      type: Date,
+    expiry: {
+      type: String,
       required: false,
     },
     brand: {
@@ -62,19 +66,20 @@ const PaymentsSchema = new Schema({
 });
 
 interface PaymentsUserMethod {
-  paymentsUserMethodId: string;
+  paymentUserMethodId: string;
   userId: string;
   creationDate: Date;
   paymentMethodId: PaymentMethods;
+  isDefault: boolean;
   status: PaymentsUserMethodStatus;
   statusDescription: string;
   expireDate?: Date;
   creditCard?: {
-    numberEncrypted: string;
+    encryptedCard: string;
     fourFinalNumbers: string;
     cvc: string;
     holderName: string;
-    expireData: string;
+    expiry: string;
     brand: string;
   };
 }
