@@ -18,8 +18,6 @@ class UpdateAccountSettingsRequest {
     public referPronoun: string,
     public messageProfessionalName: string,
 
-    //public paymentProcessingInfo: PaymentProcessingResponse,
-
     public userAddressCEP: string,
     public userAddressStreet: string,
     public userAddressNumber: string,

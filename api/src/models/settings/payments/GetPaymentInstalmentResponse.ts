@@ -1,6 +1,7 @@
 /** @format */
 
 import PaymentInstalmentsStatus from "../../../enums/PaymentInstalmentsStatus";
+import { GetUserPaymentMethodResponse } from "./GetPaymentUserMethodResponse";
 
 class GetPaymentInstalmentResponse {
   constructor(
@@ -11,7 +12,8 @@ class GetPaymentInstalmentResponse {
     public instalmentNumber: string,
     public status: PaymentInstalmentsStatus,
     public statusDescription: string,
-    public expireDate?: Date
+    public expireDate?: Date,
+    public paymentMethod?: GetUserPaymentMethodResponse
   ) {}
 }
 

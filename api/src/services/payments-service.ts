@@ -14,6 +14,11 @@ import CreateUserPaymentMethodResponse, {
   CreateCreditCardPaymentMethodResponse,
 } from "../models/settings/payments/CreatePaymentMethodResponse";
 import { createCreditCardPayment } from "./pagbank/credit-card.service";
+import GetPaymentInstalmentResponse from "../models/settings/payments/GetPaymentInstalmentResponse";
+import {
+  GetCreditCardUserPaymentMethodResponse,
+  GetUserPaymentMethodResponse,
+} from "../models/settings/payments/GetPaymentUserMethodResponse";
 
 export const createUserPaymentMethod = async (
   userId: string,
@@ -227,4 +232,51 @@ export const createPayment = async (
       paymentValidUntil
     );
   }
+};
+
+export const getPaymentInstalmentById = async (
+  userId: string,
+  paymentInstalmentId: string
+): Promise<GetPaymentInstalmentResponse> => {
+  const paymentInstalmentDoc = await PaymentInstalmentsRepository.findOne({
+    userId: userId,
+    paymentInstalmentsId: paymentInstalmentId,
+  });
+
+  const paymentInstalmentResponse = new GetPaymentInstalmentResponse(
+    paymentInstalmentDoc?.paymentInstalmentsId!,
+    paymentInstalmentDoc?.paymentUserMethodId!,
+    userId,
+    paymentInstalmentDoc?.creationDate!,
+    paymentInstalmentDoc?.instalmentNumber!,
+    paymentInstalmentDoc?.status!,
+    paymentInstalmentDoc?.statusDescription!,
+    paymentInstalmentDoc?.expireDate!
+  );
+
+  if (paymentInstalmentDoc?.paymentUserMethodId) {
+    const paymentUserMethodDoc = await PaymentsUserMethodRepository.findOne({
+      userId: userId,
+      paymentUserMethodId: paymentInstalmentDoc.paymentUserMethodId,
+    });
+    paymentInstalmentResponse.paymentMethod = new GetUserPaymentMethodResponse(
+      paymentUserMethodDoc?.paymentUserMethodId!,
+      userId,
+      paymentUserMethodDoc?.creationDate!,
+      paymentUserMethodDoc?.paymentMethodId!,
+      paymentUserMethodDoc?.isDefault!,
+      paymentUserMethodDoc?.status!,
+      paymentUserMethodDoc?.statusDescription!,
+      paymentUserMethodDoc?.expireDate!,
+      new GetCreditCardUserPaymentMethodResponse(
+        paymentUserMethodDoc?.creditCard?.cvc!,
+        paymentUserMethodDoc?.creditCard?.holderName!,
+        paymentUserMethodDoc?.creditCard?.expiry!,
+        paymentUserMethodDoc?.creditCard?.fourFinalNumbers!,
+        paymentUserMethodDoc?.creditCard?.brand
+      )
+    );
+  }
+
+  return paymentInstalmentResponse;
 };

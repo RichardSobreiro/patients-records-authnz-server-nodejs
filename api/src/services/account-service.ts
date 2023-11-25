@@ -56,11 +56,11 @@ export const getAccountSettings = async (
       paymentInstalmentsDocs?.length > 0 &&
       paymentInstalmentsDocs[0].status === PaymentInstalmentsStatus.OK
     ) {
-      accountDocument.paymentStatus = PaymentInstalmentsStatus.OK;
+      accountResponse.paymentStatus = PaymentInstalmentsStatus.OK;
     } else if (paymentInstalmentsDocs?.length > 0) {
-      accountDocument.paymentStatus = paymentInstalmentsDocs[0].status;
+      accountResponse.paymentStatus = paymentInstalmentsDocs[0].status;
     } else {
-      accountDocument.paymentStatus = PaymentInstalmentsStatus.PENDING;
+      accountResponse.paymentStatus = PaymentInstalmentsStatus.PENDING;
     }
 
     if (paymentInstalmentsDocs?.length > 0) {
@@ -126,18 +126,6 @@ export const updateAccountSettings = async (
   userId: string,
   request: UpdateAccountSettingsRequest
 ): Promise<UpdateAccountSettingsResponse> => {
-  let userCreationCompleted = true;
-
-  for (const [key, value] of Object.entries(request)) {
-    if (
-      key !== "companyName" &&
-      key !== "companyNumberOfEmployees" &&
-      key !== "companyCNPJ" &&
-      (value === undefined || value === null || value === "")
-    ) {
-      userCreationCompleted = false;
-    }
-  }
   const beforeUpdateDoc = await AccountRepository.findOneAndUpdate(
     { userId: userId },
     {
@@ -161,7 +149,7 @@ export const updateAccountSettings = async (
       companyName: request.companyName,
       companyCNPJ: request.companyCNPJ,
       companyNumberOfEmployees: request.companyNumberOfEmployees,
-      userCreationCompleted: false,
+      userCreationCompleted: userCreationIsCompleted(request),
     }
   );
 
@@ -190,4 +178,33 @@ export const updateAccountSettings = async (
     request.companyCNPJ,
     request.companyNumberOfEmployees
   );
+};
+
+const userCreationIsCompleted = (
+  account: UpdateAccountSettingsRequest
+): boolean => {
+  if (
+    account.userPlanId !== undefined &&
+    account.userNameComplete !== undefined &&
+    account.username !== undefined &&
+    account.userBirthdate !== undefined &&
+    account.userGender !== undefined &&
+    account.userCPF !== undefined &&
+    account.userCreationCompleted !== undefined &&
+    account.phoneNumber !== undefined &&
+    account.email !== undefined &&
+    account.referPronoun !== undefined &&
+    account.messageProfessionalName !== undefined &&
+    account.userAddressCEP !== undefined &&
+    account.userAddressStreet !== undefined &&
+    account.userAddressNumber !== undefined &&
+    account.userAddressDistrict !== undefined &&
+    account.userAddressCity !== undefined &&
+    account.userAddressComplement !== undefined &&
+    account.userAddressState !== undefined
+  ) {
+    return true;
+  } else {
+    return false;
+  }
 };
