@@ -7,8 +7,12 @@ import { authenticate } from "../middlewares/auth.middleware";
 export default () => {
   const router = new Router();
 
-  const { createUserPaymentMethod, createPayment, getPaymentInstalmentById } =
-    paymentsController();
+  const {
+    createUserPaymentMethod,
+    createPayment,
+    getPaymentInstalmentById,
+    processRecurrentPayments,
+  } = paymentsController();
 
   router.post("/payments/methods", authenticate, createUserPaymentMethod);
   router.post("/payments", authenticate, createPayment);
@@ -17,6 +21,7 @@ export default () => {
     authenticate,
     getPaymentInstalmentById
   );
+  router.post("/payments/recurrencies", authenticate, processRecurrentPayments);
 
   return router;
 };

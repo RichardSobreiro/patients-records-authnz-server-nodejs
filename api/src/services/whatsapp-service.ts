@@ -6,7 +6,7 @@ import { SendMessageResponse } from "../models/whatsapp/SendMessageResponse";
 import { SendAppointmentReminderMessageRequest } from "../models/whatsapp/SendAppointmentReminderMessageRequest";
 import { SendAppointmentReminderMessageResponse } from "../models/whatsapp/SendAppointmentReminderMessageResponse";
 import { WhatsappMessageResponsesRepository } from "../db/models/WhatsappMessageResponsesRepository";
-import ScheduledMessagesStatus from "../enums/ScheduledMessagesStatus";
+import ScheduledMessagesStatus from "../constants/ScheduledMessagesStatus";
 import { ScheduledMessagesRepository } from "../db/models/ScheduledMessagesRepository";
 import { ServicesRepository } from "../db/models/ServicesRepository";
 

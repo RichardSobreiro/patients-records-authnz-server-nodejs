@@ -1,6 +1,6 @@
 /** @format */
 
-import PaymentInstalmentsStatus from "../../../enums/PaymentInstalmentsStatus";
+import PaymentInstalmentsStatus from "../../../constants/PaymentInstalmentsStatus";
 import { GetUserPaymentMethodResponse } from "./GetPaymentUserMethodResponse";
 
 class GetPaymentInstalmentResponse {
@@ -13,6 +13,7 @@ class GetPaymentInstalmentResponse {
     public status: PaymentInstalmentsStatus,
     public statusDescription: string,
     public expireDate?: Date,
+    public paymentDate?: Date,
     public paymentMethod?: GetUserPaymentMethodResponse
   ) {}
 }

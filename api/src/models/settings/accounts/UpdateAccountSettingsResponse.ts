@@ -18,8 +18,6 @@ class UpdateAccountSettingsResponse {
     public referPronoun: string,
     public messageProfessionalName: string,
 
-    //public paymentProcessingInfo: PaymentProcessingResponse,
-
     public userAddressCEP: string,
     public userAddressStreet: string,
     public userAddressNumber: string,
@@ -29,7 +27,7 @@ class UpdateAccountSettingsResponse {
     public userAddressState: string,
     public companyName?: string,
     public companyCNPJ?: string,
-    public companyNumberOfEmployees?: string
+    public companyNumberOfEmployees?: number | string
   ) {}
 }
 

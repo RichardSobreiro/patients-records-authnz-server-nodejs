@@ -17,6 +17,18 @@ const AccountSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  paymentStatus: {
+    type: String,
+    required: false,
+  },
+  paymentStatusDescription: {
+    type: String,
+    required: false,
+  },
+  creationDate: {
+    type: Date,
+    required: true,
+  },
   username: {
     type: String,
     required: true,
@@ -45,6 +57,10 @@ const AccountSchema = new Schema({
     type: Boolean,
     default: false,
     required: true,
+  },
+  dateCreationCompleted: {
+    type: Date,
+    required: false,
   },
   userPlanId: {
     type: String,
@@ -117,4 +133,40 @@ const AccountSchema = new Schema({
   },
 });
 
-export const AccountRepository = mongoose.model<any>("Account", AccountSchema);
+export interface Account {
+  userId: string;
+  email: string;
+  creationDate: Date;
+  emailVerified?: boolean | undefined;
+  paymentStatus?: string;
+  paymentStatusDescription?: string;
+  username: string;
+  userNameComplete?: string | undefined;
+  userBirthdate?: Date;
+  userCPF?: string;
+  gender?: string;
+  password?: string;
+  userCreationCompleted: boolean;
+  dateCreationCompleted?: Date;
+  userPlanId?: string;
+  companyName?: string;
+  companyCNPJ?: string;
+  companyNumberOfEmployees?: number;
+  referPronoun?: string;
+  messageProfessionalName?: string;
+  phoneAreaCode?: string;
+  phoneNumber?: string;
+  phoneNumberVerified?: boolean | undefined;
+  userAddressCEP?: string;
+  userAddressStreet?: string;
+  userAddressNumber?: string;
+  userAddressDistrict?: string;
+  userAddressCity?: string;
+  userAddressComplement?: string;
+  userAddressState?: string;
+}
+
+export const AccountRepository = mongoose.model<Account>(
+  "Account",
+  AccountSchema
+);

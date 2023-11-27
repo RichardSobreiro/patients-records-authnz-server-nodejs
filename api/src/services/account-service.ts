@@ -3,7 +3,8 @@
 import { AccountRepository } from "../db/models/AccountRepository";
 import { PaymentInstalmentsRepository } from "../db/models/PaymentInstalmentsRepository";
 import { PaymentsUserMethodRepository } from "../db/models/PaymentsUserMethodRepository";
-import PaymentInstalmentsStatus from "../enums/PaymentInstalmentsStatus";
+import PaymentInstalmentsStatus from "../constants/PaymentInstalmentsStatus";
+import Plans from "../constants/Plans";
 import GetAccountSettingsResponse from "../models/settings/accounts/GetAccountSettingsResponse";
 import UpdateAccountSettingsRequest from "../models/settings/accounts/UpdateAccountSettingsRequest";
 import UpdateAccountSettingsResponse from "../models/settings/accounts/UpdateAccountSettingsResponse";
@@ -20,26 +21,26 @@ export const getAccountSettings = async (
 
   if (accountDocument) {
     const accountResponse = new GetAccountSettingsResponse(
-      accountDocument.userPlanId,
-      accountDocument.userNameComplete,
+      accountDocument.userPlanId ?? Plans.Testing,
+      accountDocument.userNameComplete!,
       accountDocument.username,
-      accountDocument.userBirthdate,
-      accountDocument.gender,
-      accountDocument.userCPF,
+      accountDocument.userBirthdate!,
+      accountDocument.gender!,
+      accountDocument.userCPF!,
       accountDocument.userCreationCompleted,
-      accountDocument.phoneNumber,
-      accountDocument.phoneNumberVerified,
+      accountDocument.phoneNumber!,
+      accountDocument.phoneNumberVerified!,
       accountDocument.email,
-      accountDocument.emailVerified,
-      accountDocument.referPronoun,
-      accountDocument.messageProfessionalName,
-      accountDocument.userAddressCEP,
-      accountDocument.userAddressStreet,
-      accountDocument.userAddressNumber,
-      accountDocument.userAddressDistrict,
-      accountDocument.userAddressCity,
-      accountDocument.userAddressComplement,
-      accountDocument.userAddressState,
+      accountDocument.emailVerified!,
+      accountDocument.referPronoun!,
+      accountDocument.messageProfessionalName!,
+      accountDocument.userAddressCEP!,
+      accountDocument.userAddressStreet!,
+      accountDocument.userAddressNumber!,
+      accountDocument.userAddressDistrict!,
+      accountDocument.userAddressCity!,
+      accountDocument.userAddressComplement!,
+      accountDocument.userAddressState!,
       PaymentInstalmentsStatus.PENDING,
       undefined,
       undefined,
@@ -126,6 +127,14 @@ export const updateAccountSettings = async (
   userId: string,
   request: UpdateAccountSettingsRequest
 ): Promise<UpdateAccountSettingsResponse> => {
+  const userCreationIsCompleted = isUserCreationCompleted(request);
+  let dateUserCreationIsCompleted: Date | undefined = undefined;
+  if (userCreationIsCompleted) {
+    dateUserCreationIsCompleted = new Date();
+  } else {
+    dateUserCreationIsCompleted = undefined;
+  }
+
   const beforeUpdateDoc = await AccountRepository.findOneAndUpdate(
     { userId: userId },
     {
@@ -149,7 +158,8 @@ export const updateAccountSettings = async (
       companyName: request.companyName,
       companyCNPJ: request.companyCNPJ,
       companyNumberOfEmployees: request.companyNumberOfEmployees,
-      userCreationCompleted: userCreationIsCompleted(request),
+      userCreationCompleted: userCreationIsCompleted,
+      dateCreationCompleted: dateUserCreationIsCompleted,
     }
   );
 
@@ -162,9 +172,9 @@ export const updateAccountSettings = async (
     request.userCPF,
     false,
     request.phoneNumber,
-    beforeUpdateDoc.phoneNumberVerified,
+    beforeUpdateDoc?.phoneNumberVerified as unknown as boolean,
     request.email,
-    beforeUpdateDoc.emailVerified,
+    beforeUpdateDoc?.emailVerified as unknown as boolean,
     request.referPronoun,
     request.messageProfessionalName,
     request.userAddressCEP,
@@ -180,7 +190,7 @@ export const updateAccountSettings = async (
   );
 };
 
-const userCreationIsCompleted = (
+const isUserCreationCompleted = (
   account: UpdateAccountSettingsRequest
 ): boolean => {
   if (

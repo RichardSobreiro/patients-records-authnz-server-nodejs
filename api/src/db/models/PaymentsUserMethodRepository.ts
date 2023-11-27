@@ -1,8 +1,8 @@
 /** @format */
 
 import mongoose, { Schema } from "mongoose";
-import PaymentsUserMethodStatus from "../../enums/PaymentsUserMethodStatus";
-import PaymentMethods from "../../enums/PaymentMethods";
+import PaymentsUserMethodStatus from "../../constants/PaymentsUserMethodStatus";
+import PaymentMethods from "../../constants/PaymentMethods";
 
 const PaymentsSchema = new Schema({
   paymentUserMethodId: {

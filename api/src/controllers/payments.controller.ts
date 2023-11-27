@@ -6,6 +6,7 @@ import {
   createPayment,
   createUserPaymentMethod,
   getPaymentInstalmentById,
+  processRecurrentPayments,
 } from "../services/payments-service";
 import CreateUserPaymentMethodRequest from "../models/settings/payments/CreatePaymentMethodRequest";
 import CreatePaymentRequest from "../models/settings/payments/CreatePaymentRequest";
@@ -60,6 +61,17 @@ export default (): { [key: string]: Middleware } => ({
       console.log(e);
       ctx.status = 500;
       ctx.message = "Internal Server Error";
+    }
+  },
+  processRecurrentPayments: async (ctx) => {
+    try {
+      await processRecurrentPayments();
+      ctx.status = 201;
+      ctx.message = "Created";
+    } catch (e: any) {
+      console.log(e);
+      ctx.status = 500;
+      ctx.message = `${e.message || "Internal Server Error"}`;
     }
   },
 });

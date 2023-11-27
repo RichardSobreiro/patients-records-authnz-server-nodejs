@@ -1,7 +1,7 @@
 /** @format */
 
 import mongoose, { Schema } from "mongoose";
-import PaymentInstalmentsStatus from "../../enums/PaymentInstalmentsStatus";
+import PaymentInstalmentsStatus from "../../constants/PaymentInstalmentsStatus";
 
 const PaymentInstalmentsSchema = new Schema({
   paymentInstalmentsId: {
@@ -25,6 +25,10 @@ const PaymentInstalmentsSchema = new Schema({
     required: true,
   },
   expireDate: {
+    type: Date,
+    required: false,
+  },
+  paymentDate: {
     type: Date,
     required: false,
   },
@@ -52,6 +56,7 @@ interface PaymentInstalments {
   userId: string;
   creationDate: Date;
   expireDate?: Date;
+  paymentDate?: Date;
   instalmentNumber: string;
   status: PaymentInstalmentsStatus;
   statusDescription: string;

@@ -2,8 +2,7 @@
 
 enum Plans {
   Testing = "1",
-  Anual = "2",
-  Monthly = "3",
+  Monthly = "2",
 }
 
 export default Plans;

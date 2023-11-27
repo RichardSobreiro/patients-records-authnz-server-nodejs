@@ -1,6 +1,6 @@
 /** @format */
 
-import PaymentInstalmentsStatus from "../../../enums/PaymentInstalmentsStatus";
+import PaymentInstalmentsStatus from "../../../constants/PaymentInstalmentsStatus";
 
 export class CreatePaymentResponse {
   constructor(
@@ -11,7 +11,8 @@ export class CreatePaymentResponse {
     public instalmentNumber: string,
     public status: PaymentInstalmentsStatus,
     public statusDescription: string,
-    public expireDate?: Date
+    public expireDate?: Date,
+    public paymentDate?: Date
   ) {}
 }
 

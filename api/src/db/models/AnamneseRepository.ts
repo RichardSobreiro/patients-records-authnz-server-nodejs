@@ -3,14 +3,6 @@
 import mongoose, { Schema } from "mongoose";
 import { CreateAnamnesisTypeContentRequest } from "../../models/customers/CreateAnamneseRequest";
 
-export interface Anamnese {
-  anamneseId: string;
-  customerId: string;
-  creationDate: Date;
-  date: Date;
-  anamnesisTypesContent: CreateAnamnesisTypeContentRequest[];
-}
-
 const AnamneseSchema = new Schema({
   anamneseId: {
     type: String,
@@ -127,6 +119,14 @@ const AnamneseSchema = new Schema({
     },
   ],
 });
+
+export interface Anamnese {
+  anamneseId: string;
+  customerId: string;
+  creationDate: Date;
+  date: Date;
+  anamnesisTypesContent: CreateAnamnesisTypeContentRequest[];
+}
 
 export const AnamneseRepository = mongoose.model<Anamnese>(
   "Anamnese",

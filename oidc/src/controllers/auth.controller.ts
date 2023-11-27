@@ -60,6 +60,7 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
       await accountService.set(userId, {
         userId: userId,
         email: body.email,
+        creationDate: new Date(),
         username: body.username,
         password: body.password,
         companyName: body.userCompanyName,

@@ -1,7 +1,7 @@
 /** @format */
 
-import RemindersHandlerExecutionStatus from "../enums/ReminderExecutionHandlerStatus";
-import ScheduledMessagesStatus from "../enums/ScheduledMessagesStatus";
+import RemindersHandlerExecutionStatus from "../constants/ReminderExecutionHandlerStatus";
+import ScheduledMessagesStatus from "../constants/ScheduledMessagesStatus";
 import { RemindersHandlerExecutionRepository } from "../db/models/RemindersHandlerExecutionsRepository";
 import {
   ScheduledMessage,
@@ -15,7 +15,7 @@ import { ServicesRepository } from "../db/models/ServicesRepository";
 import { UpdateServiceRequest } from "../models/customers/services/UpdateServiceRequest";
 import { CreateServiceRequest } from "../models/customers/services/CreateServiceRequest";
 import { AccountRepository } from "../db/models/AccountRepository";
-import Gender from "../enums/Gender";
+import Gender from "../constants/Gender";
 
 export const scheduleReminderMessage = async (
   customerId: string,
@@ -189,9 +189,9 @@ const processScheduledMessage = async (scheduledReminder: ScheduledMessage) => {
     email: serviceDocument.userId,
   });
   let referTerm = "";
-  if (profissionalDocument.gender === Gender.Female) {
+  if (profissionalDocument!.gender === Gender.Female) {
     referTerm = "Dra.";
-  } else if (profissionalDocument.gender === Gender.Male) {
+  } else if (profissionalDocument!.gender === Gender.Male) {
     referTerm = "Dr.";
   } else {
     referTerm = "";

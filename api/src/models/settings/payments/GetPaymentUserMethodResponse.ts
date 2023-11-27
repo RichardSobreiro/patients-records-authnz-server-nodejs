@@ -1,7 +1,7 @@
 /** @format */
 
-import PaymentMethods from "../../../enums/PaymentMethods";
-import PaymentsUserMethodStatus from "../../../enums/PaymentsUserMethodStatus";
+import PaymentMethods from "../../../constants/PaymentMethods";
+import PaymentsUserMethodStatus from "../../../constants/PaymentsUserMethodStatus";
 
 export class GetCreditCardUserPaymentMethodResponse {
   constructor(

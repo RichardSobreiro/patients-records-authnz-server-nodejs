@@ -1,6 +1,6 @@
 /** @format */
 
-import PaymentMethods from "../../../enums/PaymentMethods";
+import PaymentMethods from "../../../constants/PaymentMethods";
 
 class CreateCreditCardPaymentMethodRequest {
   constructor(

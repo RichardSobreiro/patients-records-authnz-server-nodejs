@@ -1,6 +1,6 @@
 /** @format */
 
-import PaymentInstalmentsStatus from "../../../enums/PaymentInstalmentsStatus";
+import PaymentInstalmentsStatus from "../../../constants/PaymentInstalmentsStatus";
 import GetPaymentInstalmentResponse from "../payments/GetPaymentInstalmentResponse";
 import GetPaymentUserMethodResponse from "../payments/GetPaymentUserMethodResponse";
 
@@ -36,7 +36,7 @@ class GetAccountSettingsResponse {
 
     public companyName?: string,
     public companyCNPJ?: string,
-    public companyNumberOfEmployees?: string
+    public companyNumberOfEmployees?: number | string
   ) {}
 }
 

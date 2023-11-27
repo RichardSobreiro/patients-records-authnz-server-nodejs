@@ -1,11 +1,11 @@
 /** @format */
 
-import { AccountRepository } from "../db/models/AccountRepository";
+import { Account, AccountRepository } from "../db/models/AccountRepository";
 import { PaymentsUserMethodRepository } from "../db/models/PaymentsUserMethodRepository";
 import { PaymentInstalmentsRepository } from "../db/models/PaymentInstalmentsRepository";
-import PaymentInstalmentsStatus from "../enums/PaymentInstalmentsStatus";
-import PaymentMethods from "../enums/PaymentMethods";
-import PaymentsUserMethodStatus from "../enums/PaymentsUserMethodStatus";
+import PaymentInstalmentsStatus from "../constants/PaymentInstalmentsStatus";
+import PaymentMethods from "../constants/PaymentMethods";
+import PaymentsUserMethodStatus from "../constants/PaymentsUserMethodStatus";
 import CreatePaymentRequest from "../models/settings/payments/CreatePaymentRequest";
 import CreatePaymentResponse from "../models/settings/payments/CreatePaymentResponse";
 import { v4 as uuidv4 } from "uuid";
@@ -19,6 +19,8 @@ import {
   GetCreditCardUserPaymentMethodResponse,
   GetUserPaymentMethodResponse,
 } from "../models/settings/payments/GetPaymentUserMethodResponse";
+import Plans from "../constants/Plans";
+import PaymentStatus from "../constants/PaymentStatus";
 
 export const createUserPaymentMethod = async (
   userId: string,
@@ -173,6 +175,7 @@ export const createPayment = async (
         status: PaymentInstalmentsStatus.OK,
         statusDescription: statusDescriptionInstalments,
         expireDate: paymentValidUntil,
+        paymentDate: new Date(),
         paymentProcessorResponse: responseBody,
       }
     );
@@ -251,7 +254,8 @@ export const getPaymentInstalmentById = async (
     paymentInstalmentDoc?.instalmentNumber!,
     paymentInstalmentDoc?.status!,
     paymentInstalmentDoc?.statusDescription!,
-    paymentInstalmentDoc?.expireDate!
+    paymentInstalmentDoc?.expireDate,
+    paymentInstalmentDoc?.paymentDate
   );
 
   if (paymentInstalmentDoc?.paymentUserMethodId) {
@@ -279,4 +283,121 @@ export const getPaymentInstalmentById = async (
   }
 
   return paymentInstalmentResponse;
+};
+
+export const processRecurrentPayments = async () => {
+  const accountDocs = await AccountRepository.find({});
+
+  for (const accountDoc of accountDocs) {
+    switch (accountDoc.userPlanId) {
+      case Plans.Testing:
+        await processTestingPlanPayment(accountDoc);
+        break;
+      case Plans.Monthly:
+        await processMonthlyPlanPayment(accountDoc);
+        break;
+      default:
+        await processTestingPlanPayment(accountDoc);
+        break;
+    }
+  }
+};
+
+const processTestingPlanPayment = async (accountDoc: Account) => {
+  const now = new Date();
+
+  if (!accountDoc.dateCreationCompleted || !accountDoc.userCreationCompleted) {
+    await AccountRepository.updateOne(
+      { userId: accountDoc.userId },
+      {
+        $set: {
+          paymentStatus: PaymentStatus.REGISTERING.toString(),
+          paymentStatusDescription: PaymentStatus.REGISTERING.value,
+        },
+      }
+    );
+    return;
+  }
+
+  now.setUTCHours(0, 0, 0, 0);
+
+  const dateCreationCompletedWithoutTime = new Date(
+    accountDoc.dateCreationCompleted
+  );
+  dateCreationCompletedWithoutTime.setUTCHours(0, 0, 0, 0);
+
+  const endTestPeriod = new Date(
+    new Date(dateCreationCompletedWithoutTime).setDate(
+      dateCreationCompletedWithoutTime.getDate() + 7
+    )
+  );
+
+  if (endTestPeriod.getTime() < now.getTime()) {
+    await AccountRepository.updateOne(
+      { userId: accountDoc.userId },
+      {
+        $set: {
+          paymentStatus: PaymentStatus.TESTINGENDED.toString(),
+          paymentStatusDescription: PaymentStatus.TESTINGENDED.value,
+        },
+      }
+    );
+  }
+};
+
+const processMonthlyPlanPayment = async (accountDoc: Account) => {
+  const now = new Date();
+
+  if (!accountDoc.dateCreationCompleted || !accountDoc.userCreationCompleted) {
+    await AccountRepository.updateOne(
+      { userId: accountDoc.userId },
+      {
+        $set: {
+          paymentStatus: PaymentStatus.REGISTERING.toString(),
+          paymentStatusDescription: PaymentStatus.REGISTERING.value,
+        },
+      }
+    );
+    return;
+  }
+
+  now.setUTCHours(0, 0, 0, 0);
+
+  const instalmentDocs = await PaymentInstalmentsRepository.find({
+    userId: accountDoc.userId,
+    status: PaymentInstalmentsStatus.OK,
+  }).sort({ paymentDate: "desc", creationDate: "desc" });
+
+  if (instalmentDocs?.length > 0 && instalmentDocs[0].expireDate) {
+    if (typeof instalmentDocs[0].expireDate === "string") {
+      instalmentDocs[0].expireDate = new Date(instalmentDocs[0].expireDate);
+    }
+
+    const expireDateUTCHours = new Date(instalmentDocs[0].expireDate);
+    expireDateUTCHours.setUTCHours(0, 0, 0, 0);
+
+    if (expireDateUTCHours.getTime() < now.getTime()) {
+      await AccountRepository.updateOne(
+        { userId: accountDoc.userId },
+        {
+          $set: {
+            paymentStatus: PaymentStatus.NOTOK.toString(),
+            paymentStatusDescription: PaymentStatus.NOTOK.value,
+          },
+        }
+      );
+      return;
+    } else {
+      await AccountRepository.updateOne(
+        { userId: accountDoc.userId },
+        {
+          $set: {
+            paymentStatus: PaymentStatus.OK.toString(),
+            paymentStatusDescription: PaymentStatus.OK.value as string,
+          },
+        }
+      );
+      return;
+    }
+  }
 };

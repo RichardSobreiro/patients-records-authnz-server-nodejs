@@ -27,7 +27,7 @@ class UpdateAccountSettingsRequest {
     public userAddressState: string,
     public companyName?: string,
     public companyCNPJ?: string,
-    public companyNumberOfEmployees?: string
+    public companyNumberOfEmployees?: number | string
   ) {}
 }
 
