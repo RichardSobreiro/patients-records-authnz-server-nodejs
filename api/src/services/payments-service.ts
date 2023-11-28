@@ -21,6 +21,9 @@ import {
 } from "../models/settings/payments/GetPaymentUserMethodResponse";
 import Plans from "../constants/Plans";
 import PaymentStatus from "../constants/PaymentStatus";
+import { createUserNotification } from "./notifications-service";
+import CreateNotificationRequest from "../models/notifications/CreateNotificationRequest";
+import NotificationTypes from "../constants/NotificationTypes";
 
 export const createUserPaymentMethod = async (
   userId: string,
@@ -154,9 +157,11 @@ export const createPayment = async (
   const response = await createCreditCardPayment(
     paymentInstalmentDoc.paymentInstalmentsId,
     paymentInstalmentDoc.paymentUserMethodId,
-    paymentUserMethodDoc.creditCard?.encryptedCard!,
     paymentUserMethodDoc.creditCard?.cvc!,
-    paymentUserMethodDoc.creditCard?.holderName!
+    paymentUserMethodDoc.creditCard?.holderName!,
+    request.firstRecurrentPayment,
+    paymentUserMethodDoc.creditCard?.encryptedCard,
+    paymentUserMethodDoc.creditCard?.cardToken
   );
 
   const responseBody = await response.json();
@@ -188,6 +193,14 @@ export const createPayment = async (
         expireDate: paymentValidUntil,
       }
     );
+
+    if (request.firstRecurrentPayment) {
+      const cardToken = responseBody.payment_method.card.id;
+      await PaymentsUserMethodRepository.updateOne(
+        { paymentUserMethodId: request.paymentUserMethodId },
+        { $set: { "creditCard.cardToken": cardToken } }
+      );
+    }
 
     return new CreatePaymentResponse(
       paymentInstalmentDoc.paymentInstalmentsId,
@@ -222,6 +235,15 @@ export const createPayment = async (
         statusDescription: statusDescriptionPayment,
         expireDate: paymentValidUntil,
       }
+    );
+
+    await createUserNotification(
+      userId,
+      new CreateNotificationRequest(
+        "Erro no Pagamento",
+        "Ocorreu um erro ao processar o pagamento. Tente novamente!",
+        NotificationTypes.PAYMENTERROR
+      )
     );
 
     return new CreatePaymentResponse(
@@ -377,16 +399,67 @@ const processMonthlyPlanPayment = async (accountDoc: Account) => {
     expireDateUTCHours.setUTCHours(0, 0, 0, 0);
 
     if (expireDateUTCHours.getTime() < now.getTime()) {
-      await AccountRepository.updateOne(
-        { userId: accountDoc.userId },
-        {
-          $set: {
-            paymentStatus: PaymentStatus.NOTOK.toString(),
-            paymentStatusDescription: PaymentStatus.NOTOK.value,
-          },
+      const defaultPaymentUserMethod =
+        await PaymentsUserMethodRepository.findOne({
+          userId: accountDoc.userId,
+          isDefault: true,
+        });
+      if (defaultPaymentUserMethod) {
+        try {
+          const paymentResponse = await createPayment(
+            accountDoc.userId,
+            new CreatePaymentRequest(
+              defaultPaymentUserMethod.paymentUserMethodId,
+              false
+            )
+          );
+          if (paymentResponse.status === PaymentInstalmentsStatus.OK) {
+            await AccountRepository.updateOne(
+              { userId: accountDoc.userId },
+              {
+                $set: {
+                  paymentStatus: PaymentStatus.OK.toString(),
+                  paymentStatusDescription: PaymentStatus.OK.value as string,
+                },
+              }
+            );
+          } else {
+            await AccountRepository.updateOne(
+              { userId: accountDoc.userId },
+              {
+                $set: {
+                  paymentStatus: PaymentStatus.ERROR.toString(),
+                  paymentStatusDescription: `${
+                    PaymentStatus.ERROR.value as string
+                  }: ${paymentResponse.statusDescription}`,
+                },
+              }
+            );
+          }
+        } catch (error: any) {
+          await AccountRepository.updateOne(
+            { userId: accountDoc.userId },
+            {
+              $set: {
+                paymentStatus: PaymentStatus.ERROR.toString(),
+                paymentStatusDescription: `${
+                  PaymentStatus.ERROR.value as string
+                }: ${error.message}`,
+              },
+            }
+          );
         }
-      );
-      return;
+      } else {
+        await AccountRepository.updateOne(
+          { userId: accountDoc.userId },
+          {
+            $set: {
+              paymentStatus: PaymentStatus.NOTOK.toString(),
+              paymentStatusDescription: PaymentStatus.NOTOK.value,
+            },
+          }
+        );
+      }
     } else {
       await AccountRepository.updateOne(
         { userId: accountDoc.userId },
@@ -397,7 +470,20 @@ const processMonthlyPlanPayment = async (accountDoc: Account) => {
           },
         }
       );
-      return;
     }
+  } else if (
+    !accountDoc.dateCreationCompleted ||
+    !accountDoc.userCreationCompleted
+  ) {
+    await AccountRepository.updateOne(
+      { userId: accountDoc.userId },
+      {
+        $set: {
+          paymentStatus: PaymentStatus.REGISTERING.toString(),
+          paymentStatusDescription: PaymentStatus.REGISTERING.value,
+        },
+      }
+    );
+    return;
   }
 };

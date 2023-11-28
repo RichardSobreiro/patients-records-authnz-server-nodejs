@@ -3,6 +3,7 @@
 import Router from "koa-router";
 import appRouter from "./api.router";
 import settingsRouter from "./settings.router";
+import notificationsRouter from "./notifications.router";
 import paymentsRouter from "./payments.router";
 
 export default () => {
@@ -11,6 +12,7 @@ export default () => {
   router.use(appRouter().routes());
   router.use(settingsRouter().routes());
   router.use(paymentsRouter().routes());
+  router.use(notificationsRouter().routes());
 
   return router;
 };

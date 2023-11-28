@@ -42,6 +42,10 @@ const PaymentsSchema = new Schema({
       type: String,
       required: false,
     },
+    cardToken: {
+      type: String,
+      required: false,
+    },
     fourFinalNumbers: {
       type: String,
       required: false,
@@ -75,12 +79,13 @@ interface PaymentsUserMethod {
   statusDescription: string;
   expireDate?: Date;
   creditCard?: {
-    encryptedCard: string;
     fourFinalNumbers: string;
     cvc: string;
     holderName: string;
     expiry: string;
     brand: string;
+    encryptedCard?: string;
+    cardToken?: string;
   };
 }
 

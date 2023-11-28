@@ -3,13 +3,16 @@
 export const createCreditCardPayment = async (
   paymentInstalmentId: string,
   instalmentNumber: string,
-  encryptedNumber: string,
   cvc: string,
-  name: string
+  name: string,
+  firstRecurrentPayment: boolean,
+  encryptedNumber?: string,
+  cardToken?: string
 ): Promise<Response> => {
   const requestBody = {
     reference_id: paymentInstalmentId,
     description: `Instalment Number ${instalmentNumber}`,
+    capture: true,
     amount: {
       value: 1990,
       currency: "BRL",
@@ -18,17 +21,25 @@ export const createCreditCardPayment = async (
       type: "CREDIT_CARD",
       installments: 1,
       capture: true,
-      card: {
-        encrypted: encryptedNumber,
-        security_code: cvc,
-        holder: {
-          name: name,
-        },
-        store: true,
-      },
+      card: firstRecurrentPayment
+        ? {
+            encrypted: encryptedNumber,
+            security_code: cvc,
+            holder: {
+              name: name,
+            },
+            store: true,
+          }
+        : {
+            id: cardToken,
+            holder: {
+              name: name,
+            },
+            store: true,
+          },
     },
     recurring: {
-      type: "INITIAL",
+      type: firstRecurrentPayment ? "INITIAL" : "SUBSEQUENT",
     },
     notification_urls: [`${process.env.PAYMENTS_WEBHOOK}`],
   };
