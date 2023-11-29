@@ -7,9 +7,11 @@ import { authenticate } from "../middlewares/auth.middleware";
 export default () => {
   const router = new Router();
 
-  const { getUserNotifications } = notificationsController();
+  const { getUserNotifications, updateUserNotification } =
+    notificationsController();
 
   router.get("/notifications", authenticate, getUserNotifications);
+  router.put("/notifications", authenticate, updateUserNotification);
 
   return router;
 };

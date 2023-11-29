@@ -15,7 +15,7 @@ import CreateUserPaymentMethodResponse, {
 } from "../models/settings/payments/CreatePaymentMethodResponse";
 import { createCreditCardPayment } from "./pagbank/credit-card.service";
 import GetPaymentInstalmentResponse from "../models/settings/payments/GetPaymentInstalmentResponse";
-import {
+import GetPaymentUserMethodResponse, {
   GetCreditCardUserPaymentMethodResponse,
   GetUserPaymentMethodResponse,
 } from "../models/settings/payments/GetPaymentUserMethodResponse";
@@ -99,6 +99,52 @@ export const createUserPaymentMethod = async (
       paymentUserMethodDoc.creditCard?.brand!
     )
   );
+};
+
+export const getUserPaymentMethods = async (
+  userId: string
+): Promise<GetPaymentUserMethodResponse> => {
+  const accountDoc = await AccountRepository.findOne({ userId: userId });
+  if (!accountDoc) {
+    throw new Error("Account not found");
+  }
+
+  const paymentUserMethodResponse = new GetPaymentUserMethodResponse();
+
+  const userPaymentMethodsDocs = await PaymentsUserMethodRepository.find({
+    userId: userId,
+  }).sort({ creationDate: "desc" });
+
+  if (userPaymentMethodsDocs?.length > 0) {
+    const defaultUserPaymentMethodDoc = userPaymentMethodsDocs.find(
+      (pm) => pm.isDefault === true
+    );
+    paymentUserMethodResponse.defaultPaymentMethod =
+      defaultUserPaymentMethodDoc?.paymentMethodId;
+    paymentUserMethodResponse.defaultPaymentUserMethodId =
+      defaultUserPaymentMethodDoc?.paymentUserMethodId;
+    paymentUserMethodResponse.paymentMethods = userPaymentMethodsDocs.map(
+      (pmd) =>
+        new GetUserPaymentMethodResponse(
+          pmd.paymentUserMethodId,
+          userId,
+          pmd.creationDate,
+          pmd.paymentMethodId,
+          pmd.isDefault,
+          pmd.status,
+          pmd.statusDescription,
+          pmd.expireDate,
+          new GetCreditCardUserPaymentMethodResponse(
+            pmd.creditCard?.cvc!,
+            pmd.creditCard?.holderName!,
+            pmd.creditCard?.expiry!,
+            pmd.creditCard?.fourFinalNumbers!,
+            pmd.creditCard?.brand
+          )
+        )
+    );
+  }
+  return paymentUserMethodResponse;
 };
 
 export const createPayment = async (

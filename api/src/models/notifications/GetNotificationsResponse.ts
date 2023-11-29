@@ -23,6 +23,7 @@ class ListPage {
 class GetNotificationsResponse {
   constructor(
     public notificationsCount: number,
+    public unReadNotificationsCount: number,
     public previous?: ListPage,
     public next?: ListPage,
     public notifications?: GetNotificationResponse[]

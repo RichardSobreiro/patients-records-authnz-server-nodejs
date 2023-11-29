@@ -66,8 +66,13 @@ export const getUserNotifications = async (
     filter
   ).exec();
 
+  const unReadNotificationsCount = await NotificationsRepository.countDocuments(
+    { userId: userId, read: false }
+  ).exec();
+
   const getNotificationsResponse = new GetNotificationsResponse(
-    notificationsCount
+    notificationsCount,
+    unReadNotificationsCount
   );
 
   if (startIndex > 0) {

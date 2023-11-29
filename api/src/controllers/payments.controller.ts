@@ -6,6 +6,7 @@ import {
   createPayment,
   createUserPaymentMethod,
   getPaymentInstalmentById,
+  getUserPaymentMethods,
   processRecurrentPayments,
 } from "../services/payments-service";
 import CreateUserPaymentMethodRequest from "../models/settings/payments/CreatePaymentMethodRequest";
@@ -20,6 +21,21 @@ export default (): { [key: string]: Middleware } => ({
       const responseBody = await createUserPaymentMethod(userId, requestBody);
 
       ctx.status = 201;
+      ctx.message = "OK";
+      ctx.response.body = JSON.stringify(responseBody);
+    } catch (e: any) {
+      console.log(e);
+      ctx.status = 500;
+      ctx.message = `${e.message || "Internal Server Error"}`;
+    }
+  },
+  getUserPaymentMethods: async (ctx) => {
+    try {
+      const userId = ctx.state.session.sub as string;
+
+      const responseBody = await getUserPaymentMethods(userId);
+
+      ctx.status = 200;
       ctx.message = "OK";
       ctx.response.body = JSON.stringify(responseBody);
     } catch (e: any) {
