@@ -13,7 +13,10 @@ import CreateUserPaymentMethodRequest from "../models/settings/payments/CreatePa
 import CreateUserPaymentMethodResponse, {
   CreateCreditCardPaymentMethodResponse,
 } from "../models/settings/payments/CreatePaymentMethodResponse";
-import { createCreditCardPayment } from "./pagbank/credit-card.service";
+import {
+  createCreditCardPayment,
+  storeCreditCard,
+} from "./pagbank/credit-card.service";
 import GetPaymentInstalmentResponse from "../models/settings/payments/GetPaymentInstalmentResponse";
 import GetPaymentUserMethodResponse, {
   GetCreditCardUserPaymentMethodResponse,
@@ -34,34 +37,16 @@ export const createUserPaymentMethod = async (
     throw new Error("Account not found");
   }
 
-  const existingPaymentMethod = await PaymentsUserMethodRepository.findOne({
-    userId: userId,
-    paymentMethodId: PaymentMethods.CreditCardRecurrent,
-    "creditCard.fourFinalNumbers": paymentRequest.creditCard?.fourFinalNumbers,
-    "creditCard.cvc": paymentRequest.creditCard?.cvc,
-    "creditCard.holderName": paymentRequest.creditCard?.name,
-    "creditCard.expiry": paymentRequest.creditCard?.expiry,
-    "creditCard.brand": paymentRequest.creditCard?.type,
-  });
-  if (existingPaymentMethod) {
-    return new CreateUserPaymentMethodResponse(
-      existingPaymentMethod.paymentUserMethodId,
-      userId,
-      existingPaymentMethod.creationDate,
-      existingPaymentMethod.paymentMethodId,
-      existingPaymentMethod.isDefault,
-      existingPaymentMethod.status,
-      existingPaymentMethod.statusDescription,
-      existingPaymentMethod.expireDate,
-      new CreateCreditCardPaymentMethodResponse(
-        existingPaymentMethod.creditCard?.cvc!,
-        existingPaymentMethod.creditCard?.holderName!,
-        existingPaymentMethod.creditCard?.expiry!,
-        existingPaymentMethod.creditCard?.fourFinalNumbers!,
-        existingPaymentMethod.creditCard?.brand!
-      )
-    );
-  }
+  // const pagbankResponse = await storeCreditCard(
+  //   paymentRequest.creditCard?.encryptedCard
+  // );
+  // const responseBody = await pagbankResponse.json();
+  // if (pagbankResponse.ok) {
+  // }else{
+
+  // }
+
+  await PaymentsUserMethodRepository.deleteMany({ userId: userId });
 
   const paymentUserMethodDoc = await PaymentsUserMethodRepository.create({
     paymentUserMethodId: uuidv4(),
@@ -165,15 +150,7 @@ export const createPayment = async (
 
   const existingInstalmentsDocs = await PaymentInstalmentsRepository.find({
     userId: userId,
-    $or: [
-      {
-        status: PaymentInstalmentsStatus.OK,
-      },
-      {
-        status: PaymentInstalmentsStatus.PENDING,
-      },
-    ],
-  }).sort({ creationDate: "desc" });
+  }).sort({ instalmentNumber: "desc" });
 
   if (
     existingInstalmentsDocs?.length > 0 &&
@@ -186,19 +163,27 @@ export const createPayment = async (
     );
   }
 
-  const paymentInstalmentDoc = await PaymentInstalmentsRepository.create({
-    paymentInstalmentsId: uuidv4(),
-    paymentUserMethodId: request.paymentUserMethodId,
-    userId: userId,
-    creationDate: new Date(),
-    expireDate: undefined,
-    instalmentNumber:
-      existingInstalmentsDocs?.length > 0
-        ? +existingInstalmentsDocs[0].instalmentNumber + 1
-        : 1,
-    status: PaymentInstalmentsStatus.PENDING,
-    statusDescription: "Instalment payment being processed...",
-  });
+  let paymentInstalmentDoc: any = undefined;
+  if (
+    existingInstalmentsDocs?.length > 0 &&
+    existingInstalmentsDocs[0].status === PaymentInstalmentsStatus.ERROR
+  ) {
+    paymentInstalmentDoc = existingInstalmentsDocs[0].toObject();
+  } else {
+    paymentInstalmentDoc = await PaymentInstalmentsRepository.create({
+      paymentInstalmentsId: uuidv4(),
+      paymentUserMethodId: request.paymentUserMethodId,
+      userId: userId,
+      creationDate: new Date(),
+      expireDate: undefined,
+      instalmentNumber:
+        existingInstalmentsDocs?.length > 0
+          ? +existingInstalmentsDocs[0].instalmentNumber + 1
+          : 1,
+      status: PaymentInstalmentsStatus.PENDING,
+      statusDescription: "Instalment payment being processed...",
+    });
+  }
 
   const response = await createCreditCardPayment(
     paymentInstalmentDoc.paymentInstalmentsId,
@@ -217,8 +202,38 @@ export const createPayment = async (
       "Tudo certo com a mensalidade!";
     const statusDescriptionPayment: string = "Tudo certo com o seu pagamento!";
 
+    let lastInstalmentPaid: any = undefined;
+    if (
+      existingInstalmentsDocs?.length > 0 &&
+      existingInstalmentsDocs[0].status === PaymentInstalmentsStatus.OK
+    ) {
+      lastInstalmentPaid = existingInstalmentsDocs[0].toObject();
+    } else {
+      const lastPaidInstalmentDoc = await PaymentInstalmentsRepository.find({
+        userId: userId,
+        status: PaymentInstalmentsStatus.OK,
+      })
+        .sort({ instalmentNumber: "desc" })
+        .limit(1);
+      if (lastPaidInstalmentDoc?.length === 1) {
+        lastInstalmentPaid = lastPaidInstalmentDoc[0].toObject();
+      }
+    }
+
     const now = new Date();
-    const paymentValidUntil = new Date(now.setDate(now.getDate() + 31));
+    let paymentValidUntil: Date | undefined = undefined;
+    if (
+      lastInstalmentPaid !== undefined &&
+      lastInstalmentPaid.expireDate.getTime() > now.getTime()
+    ) {
+      paymentValidUntil = new Date(
+        lastInstalmentPaid.expireDate.setDate(
+          lastInstalmentPaid.expireDate.getDate() + 31
+        )
+      );
+    } else {
+      paymentValidUntil = new Date(now.setDate(now.getDate() + 31));
+    }
 
     await PaymentInstalmentsRepository.findOneAndUpdate(
       { paymentInstalmentsId: paymentInstalmentDoc.paymentInstalmentsId },

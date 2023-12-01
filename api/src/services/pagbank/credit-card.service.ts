@@ -55,3 +55,25 @@ export const createCreditCardPayment = async (
 
   return response;
 };
+
+export const storeCreditCard = async (
+  encryptedNumber?: string
+): Promise<Response> => {
+  const requestBody = {
+    encrypted: encryptedNumber,
+  };
+
+  const response = await fetch(
+    `${process.env.PAG_BANK_SAVE_CREDIT_CARD_API_URL}`,
+    {
+      method: "POST",
+      headers: {
+        ["Content-Type"]: "application/json",
+        ["Authorization"]: `Bearer ${process.env.PAG_BANK_AUTH_TOKEN}`,
+      },
+      body: JSON.stringify(requestBody),
+    }
+  );
+
+  return response;
+};

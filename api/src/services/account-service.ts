@@ -51,13 +51,26 @@ export const getAccountSettings = async (
 
     const paymentInstalmentsDocs = await PaymentInstalmentsRepository.find({
       userId: userId,
-    }).sort({ expireDate: "desc", creationDate: "desc" });
+    }).sort({
+      instalmentNumber: "desc",
+    });
 
+    const lastPaidInstalment = paymentInstalmentsDocs
+      .find((paid) => paid.status === PaymentInstalmentsStatus.OK)
+      ?.toObject();
+    const now = new Date();
     if (
-      paymentInstalmentsDocs?.length > 0 &&
-      paymentInstalmentsDocs[0].status === PaymentInstalmentsStatus.OK
+      lastPaidInstalment &&
+      lastPaidInstalment.expireDate!.getTime() >= now.getTime()
     ) {
       accountResponse.paymentStatus = PaymentInstalmentsStatus.OK;
+    } else if (
+      lastPaidInstalment &&
+      lastPaidInstalment.expireDate!.getTime() < now.getTime() &&
+      paymentInstalmentsDocs?.length > 0 &&
+      paymentInstalmentsDocs[0].status !== PaymentInstalmentsStatus.ERROR
+    ) {
+      accountResponse.paymentStatus = PaymentInstalmentsStatus.PENDING;
     } else if (paymentInstalmentsDocs?.length > 0) {
       accountResponse.paymentStatus = paymentInstalmentsDocs[0].status;
     } else {

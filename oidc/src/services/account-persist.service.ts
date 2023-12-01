@@ -5,7 +5,7 @@ import { AditionalInfoRequest } from "../models/AditionalInfoRequest";
 import { AditionalInfoResponse } from "../models/AditionalInfoResponse";
 import { PAYMENT_METHOD } from "../models/payments/PaymentMethods";
 import { PaymentProcessingResponse } from "../models/payments/PaymentProcessingResponse";
-import { createPaymentBankSlip } from "./payments/bank-slip";
+//import { createPaymentBankSlip } from "./payments/bank-slip";
 import { createPaymentCreditCard } from "./payments/credit-card";
 import { createPaymentFree } from "./payments/free";
 
@@ -39,16 +39,16 @@ export const updateUserSettings = async (
   };
 
   let paymentProcessingResponse: PaymentProcessingResponse;
-  if (request.paymentInfo?.paymentTypeCode == PAYMENT_METHOD.CREDIT_CARD) {
-    paymentProcessingResponse = await createPaymentCreditCard(
-      userEmail,
-      request
-    );
-  } else if (request.paymentInfo?.paymentTypeCode == PAYMENT_METHOD.BANK_SLIP) {
-    paymentProcessingResponse = await createPaymentBankSlip(userEmail, request);
-  } else {
-    paymentProcessingResponse = await createPaymentFree(userEmail, request);
-  }
+  // if (request.paymentInfo?.paymentTypeCode == PAYMENT_METHOD.CREDIT_CARD) {
+  //   paymentProcessingResponse = await createPaymentCreditCard(
+  //     userEmail,
+  //     request
+  //   );
+  // } else if (request.paymentInfo?.paymentTypeCode == PAYMENT_METHOD.BANK_SLIP) {
+  //   paymentProcessingResponse = await createPaymentBankSlip(userEmail, request);
+  // } else {
+  //   paymentProcessingResponse = await createPaymentFree(userEmail, request);
+  // }
 
   const response: AditionalInfoResponse = new AditionalInfoResponse(
     request.userPlanId,
@@ -67,11 +67,11 @@ export const updateUserSettings = async (
     request.companyNumberOfEmployees
   );
 
-  if (paymentProcessingResponse.paymentOk) {
-    await Account.findOneAndUpdate({ userId: userEmail }, userSettings);
-  } else {
-    response.userCreationCompleted = false;
-  }
+  // if (paymentProcessingResponse.paymentOk) {
+  //   await Account.findOneAndUpdate({ userId: userEmail }, userSettings);
+  // } else {
+  //   response.userCreationCompleted = false;
+  // }
   return response;
 };
 

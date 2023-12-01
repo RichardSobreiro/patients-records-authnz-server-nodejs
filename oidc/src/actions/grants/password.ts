@@ -8,6 +8,8 @@ import dpopValidate from "oidc-provider/lib/helpers/validate_dpop";
 import resolveResource from "oidc-provider/lib/helpers/resolve_resource";
 import { Middleware } from "koa";
 import * as accountService from "../../services/account-persist.service";
+import { PaymentInstalmentsRepository } from "../../db/mongodb/models/PaymentInstalmentsRepository";
+import PaymentInstalmentsStatus from "../../constants/PaymentInstalmentsStatus";
 
 export const gty = "password";
 
@@ -237,6 +239,35 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     idToken = await token.issue({ use: "idtoken" });
   }
 
+  let paymentIsOk: string = PaymentInstalmentsStatus.PENDING;
+  const paymentInstalmentsDocs = await PaymentInstalmentsRepository.find({
+    userId: doc.userId,
+  }).sort({
+    instalmentNumber: "desc",
+  });
+
+  const lastPaidInstalment = paymentInstalmentsDocs
+    .find((paid) => paid.status === PaymentInstalmentsStatus.OK)
+    ?.toObject();
+  const now = new Date();
+  if (
+    lastPaidInstalment &&
+    lastPaidInstalment.expireDate!.getTime() >= now.getTime()
+  ) {
+    paymentIsOk = PaymentInstalmentsStatus.OK;
+  } else if (
+    lastPaidInstalment &&
+    lastPaidInstalment.expireDate!.getTime() < now.getTime() &&
+    paymentInstalmentsDocs?.length > 0 &&
+    paymentInstalmentsDocs[0].status !== PaymentInstalmentsStatus.ERROR
+  ) {
+    paymentIsOk = PaymentInstalmentsStatus.PENDING;
+  } else if (paymentInstalmentsDocs?.length > 0) {
+    paymentIsOk = paymentInstalmentsDocs[0].status;
+  } else {
+    paymentIsOk = PaymentInstalmentsStatus.PENDING;
+  }
+
   ctx.body = {
     access_token: accessToken,
     expires_in: at.expiration,
@@ -249,7 +280,7 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     email: doc.email,
     userCreationCompleted: doc.userCreationCompleted,
     userPlanId: doc.userPlanId,
-    paymentOk: doc.paymentOk,
+    paymentOk: paymentIsOk,
     companyName: doc.companyName,
   };
 
