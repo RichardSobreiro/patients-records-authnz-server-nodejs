@@ -12,20 +12,10 @@ const bodyParser = koaBody();
 export default (oidc: Provider) => {
   const router = new Router();
 
-  const {
-    abortInteraction,
-    confirmInteraction,
-    interaction,
-    login,
-    register,
-    updateUserSettings,
-    getUserSettings,
-  } = authController(oidc);
+  const { abortInteraction, confirmInteraction, interaction, login, register } =
+    authController(oidc);
 
   router.post("/users", register);
-
-  router.post("/users/settings", authenticate, bodyParser, updateUserSettings);
-  router.get("/users/settings", authenticate, bodyParser, getUserSettings);
 
   router.post("/interaction/:uid/login", noCache, bodyParser, login);
   router.post("/interaction/:uid/confirm", noCache, confirmInteraction);

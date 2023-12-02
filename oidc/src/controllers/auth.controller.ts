@@ -4,7 +4,6 @@ import { Middleware } from "koa";
 import { Provider } from "oidc-provider";
 import * as accountService from "../services/account-persist.service";
 import { CreateUserRequest } from "../models/CreateUserRequest";
-import { AditionalInfoRequest } from "../models/AditionalInfoRequest";
 import { v4 as uuidv4 } from "uuid";
 
 function debug(obj: any) {
@@ -163,48 +162,6 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
       });
     } else {
       ctx.throw(501, "Not implemented.");
-    }
-  },
-  updateUserSettings: async (ctx) => {
-    try {
-      const requestBody = ctx.request.body as AditionalInfoRequest;
-      const userId = ctx.state.session.sub as string;
-
-      const responseBody = await accountService.updateUserSettings(
-        userId,
-        requestBody
-      );
-
-      if (responseBody.paymentProcessingInfo.paymentStatus) {
-        ctx.status = 200;
-        ctx.message = "OK";
-        ctx.response.body = JSON.stringify(responseBody);
-      } else {
-        ctx.status = 422;
-        ctx.message = responseBody.paymentProcessingInfo.message;
-        ctx.response.body = JSON.stringify(responseBody);
-      }
-    } catch (e: any) {
-      console.log(e);
-      ctx.status = 422;
-      ctx.message = "Bad Request";
-      ctx.response.body = { message: e.message, stackTrace: e.stack };
-    }
-  },
-  getUserSettings: async (ctx) => {
-    try {
-      const userId = ctx.state.session.sub as string;
-
-      const responseBody = await accountService.getUserSettings(userId);
-
-      ctx.status = 200;
-      ctx.message = "OK";
-      ctx.response.body = JSON.stringify(responseBody);
-    } catch (e: any) {
-      console.log(e);
-      ctx.status = 422;
-      ctx.message = "Bad Request";
-      ctx.response.body = { message: e.message, stackTrace: e.stack };
     }
   },
 });
