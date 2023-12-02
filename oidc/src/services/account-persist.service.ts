@@ -67,7 +67,7 @@ export const updateUserSettings = async (
     request.companyNumberOfEmployees
   );
 
-  // if (paymentProcessingResponse.paymentOk) {
+  // if (paymentProcessingResponse.paymentStatus) {
   //   await Account.findOneAndUpdate({ userId: userEmail }, userSettings);
   // } else {
   //   response.userCreationCompleted = false;

@@ -22,7 +22,7 @@
 //     creditCardEncrypted: userInfo.paymentInfo!.creditCardInfo?.encrypted,
 //     securityCode: userInfo.paymentInfo!.creditCardInfo?.securityCode,
 //     holderName: userInfo.paymentInfo!.creditCardInfo?.holderName,
-//     paymentOk: false,
+//     paymentStatus: false,
 //   };
 //   const existingPaymentInfoDoc = await PaymentInfo.exists({
 //     username: userEmail,
@@ -125,7 +125,7 @@
 
 //     await PaymentInfo.findOneAndUpdate(
 //       { _id: paymentInfoDoc._id },
-//       { paymentOk: true, paymentValidUntil: paymentValidUntil }
+//       { paymentStatus: true, paymentValidUntil: paymentValidUntil }
 //     );
 
 //     const message = "Tudo certo com o seu pagamento";
@@ -159,7 +159,7 @@
 
 //     await PaymentInfo.findOneAndUpdate(
 //       { _id: paymentInfoDoc._id },
-//       { paymentOk: false }
+//       { paymentStatus: false }
 //     );
 
 //     const message =

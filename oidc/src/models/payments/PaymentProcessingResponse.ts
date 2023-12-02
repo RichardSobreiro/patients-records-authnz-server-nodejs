@@ -2,7 +2,7 @@
 
 export class PaymentProcessingResponse {
   constructor(
-    public paymentOk: boolean,
+    public paymentStatus: boolean,
     public message: string,
     public bankSlipBarcode?: string,
     public bankSlipUrl?: string,

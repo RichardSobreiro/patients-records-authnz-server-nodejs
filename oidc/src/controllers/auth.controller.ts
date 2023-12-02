@@ -74,7 +74,7 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
         userCreationCompleted: false,
         userPlanId: body.userPlanId || "1",
         paymentStatus: {
-          paymentOk: false,
+          paymentStatus: false,
         },
         userCompanyName: body.userCompanyName,
       });
@@ -175,7 +175,7 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
         requestBody
       );
 
-      if (responseBody.paymentProcessingInfo.paymentOk) {
+      if (responseBody.paymentProcessingInfo.paymentStatus) {
         ctx.status = 200;
         ctx.message = "OK";
         ctx.response.body = JSON.stringify(responseBody);

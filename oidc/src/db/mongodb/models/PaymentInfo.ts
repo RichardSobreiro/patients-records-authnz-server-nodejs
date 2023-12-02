@@ -28,7 +28,7 @@ const PaymentInfoSchema = new Schema({
     type: String,
     required: false,
   },
-  paymentOk: {
+  paymentStatus: {
     type: Boolean,
     required: true,
     default: false,

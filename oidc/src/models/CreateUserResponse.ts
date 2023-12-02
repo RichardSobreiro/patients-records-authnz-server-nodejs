@@ -7,7 +7,7 @@ export class CreateUserResponse {
     public userCreationCompleted: boolean,
     public userPlanId?: string,
     public paymentStatus?: {
-      paymentOk: boolean;
+      paymentStatus: boolean;
       paymentIssueMessage?: string;
     },
     public userCompanyName?: string

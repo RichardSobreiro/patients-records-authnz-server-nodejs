@@ -26,7 +26,7 @@ export const createPaymentFree = async (
   } else {
     paymentInfoDoc = await PaymentInfo.create(paymentInfo);
   }
-  const paymentOk: boolean = true;
+  const paymentStatus: boolean = true;
   const message = "Tudo certo com seu pagamento!";
-  return new PaymentProcessingResponse(paymentOk, message);
+  return new PaymentProcessingResponse(paymentStatus, message);
 };

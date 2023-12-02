@@ -239,7 +239,7 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     idToken = await token.issue({ use: "idtoken" });
   }
 
-  let paymentIsOk: string = PaymentInstalmentsStatus.PENDING;
+  let paymentStatus: string = PaymentInstalmentsStatus.PENDING;
   const paymentInstalmentsDocs = await PaymentInstalmentsRepository.find({
     userId: doc.userId,
   }).sort({
@@ -254,18 +254,18 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     lastPaidInstalment &&
     lastPaidInstalment.expireDate!.getTime() >= now.getTime()
   ) {
-    paymentIsOk = PaymentInstalmentsStatus.OK;
+    paymentStatus = PaymentInstalmentsStatus.OK;
   } else if (
     lastPaidInstalment &&
     lastPaidInstalment.expireDate!.getTime() < now.getTime() &&
     paymentInstalmentsDocs?.length > 0 &&
     paymentInstalmentsDocs[0].status !== PaymentInstalmentsStatus.ERROR
   ) {
-    paymentIsOk = PaymentInstalmentsStatus.PENDING;
+    paymentStatus = PaymentInstalmentsStatus.PENDING;
   } else if (paymentInstalmentsDocs?.length > 0) {
-    paymentIsOk = paymentInstalmentsDocs[0].status;
+    paymentStatus = paymentInstalmentsDocs[0].status;
   } else {
-    paymentIsOk = PaymentInstalmentsStatus.PENDING;
+    paymentStatus = PaymentInstalmentsStatus.PENDING;
   }
 
   ctx.body = {
@@ -280,7 +280,7 @@ export const passwordHandler: Middleware = async function (ctx, next) {
     email: doc.email,
     userCreationCompleted: doc.userCreationCompleted,
     userPlanId: doc.userPlanId,
-    paymentOk: paymentIsOk,
+    paymentStatus: paymentStatus,
     companyName: doc.companyName,
   };
 

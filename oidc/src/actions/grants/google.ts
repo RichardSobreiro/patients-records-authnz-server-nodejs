@@ -279,7 +279,7 @@ export const googleHandler: Middleware = async function (ctx, next) {
     email: doc.username,
     userCreationCompleted: doc.userCreationCompleted,
     userPlanId: doc.userPlanId,
-    paymentOk: doc.paymentOk,
+    paymentStatus: doc.paymentStatus,
     companyName: doc.companyName,
   };
 
