@@ -5,6 +5,7 @@ import appRouter from "./api.router";
 import settingsRouter from "./settings.router";
 import notificationsRouter from "./notifications.router";
 import paymentsRouter from "./payments.router";
+import securityRouter from "./security.router";
 
 export default () => {
   const router = new Router();
@@ -13,6 +14,7 @@ export default () => {
   router.use(settingsRouter().routes());
   router.use(paymentsRouter().routes());
   router.use(notificationsRouter().routes());
+  router.use(securityRouter().routes());
 
   return router;
 };

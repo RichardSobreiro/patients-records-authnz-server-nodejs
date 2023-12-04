@@ -65,6 +65,8 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
         companyName: body.userCompanyName,
         userPlanId: body.userPlanId,
       });
+
+      
       ctx.message = "Created";
       ctx.status = 201;
       ctx.response.body = JSON.stringify({
