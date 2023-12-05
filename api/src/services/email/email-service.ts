@@ -62,6 +62,31 @@ export const sendValidationEmail = async (
         path: path.resolve(__dirname, "./whatsapp.png"),
         cid: "whatsapp",
       },
+      {
+        filename: "instagram.png",
+        path: path.resolve(__dirname, "./instagram.png"),
+        cid: "instagram",
+      },
+      {
+        filename: "facebook.png",
+        path: path.resolve(__dirname, "./facebook.png"),
+        cid: "facebook",
+      },
+      {
+        filename: "linkedin.png",
+        path: path.resolve(__dirname, "./linkedin.png"),
+        cid: "linkedin",
+      },
+      {
+        filename: "youtube.png",
+        path: path.resolve(__dirname, "./youtube.png"),
+        cid: "youtube",
+      },
+      {
+        filename: "twitter.png",
+        path: path.resolve(__dirname, "./twitter.png"),
+        cid: "twitter",
+      },
     ],
   };
 
