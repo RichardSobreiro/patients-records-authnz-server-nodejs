@@ -56,6 +56,7 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
       });
     } else {
       const userId = uuidv4();
+
       await accountService.set(userId, {
         userId: userId,
         email: body.email,
@@ -66,7 +67,6 @@ export default (oidc: Provider): { [key: string]: Middleware } => ({
         userPlanId: body.userPlanId,
       });
 
-      
       ctx.message = "Created";
       ctx.status = 201;
       ctx.response.body = JSON.stringify({

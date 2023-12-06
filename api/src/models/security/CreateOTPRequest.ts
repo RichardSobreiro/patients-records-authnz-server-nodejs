@@ -3,7 +3,7 @@
 import OTPType from "../../constants/OTPType";
 
 class CreateOTPRequest {
-  constructor(public userId, public otpType: OTPType) {}
+  constructor(public userId: string, public otpType: OTPType) {}
 }
 
 export default CreateOTPRequest;

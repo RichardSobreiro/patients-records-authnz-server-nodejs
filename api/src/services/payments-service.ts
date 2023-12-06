@@ -313,7 +313,7 @@ export const createPayment = async (
       userId,
       paymentInstalmentDoc.creationDate,
       paymentInstalmentDoc.instalmentNumber,
-      PaymentInstalmentsStatus.OK,
+      PaymentInstalmentsStatus.ERROR,
       statusDescriptionInstalments,
       paymentValidUntil
     );

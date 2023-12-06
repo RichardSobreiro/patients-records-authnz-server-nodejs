@@ -9,7 +9,10 @@ import UpdateOTPResponse from "../../models/security/UpdateOTPResponse";
 import ErrorReponse from "../../models/errors/ErrorResponse";
 import OTPType from "../../constants/OTPType";
 import { AccountRepository } from "../../db/models/AccountRepository";
-import { sendValidationEmail } from "../email/email-service";
+import {
+  sendValidationEmail,
+  sendWelcomeValidationEmail,
+} from "../email/email-service";
 
 export const createOTP = async (
   request: CreateOTPRequest
@@ -49,17 +52,17 @@ export const createOTP = async (
     await sendValidationEmail(
       accountDocument.email,
       accountDocument.username,
-      createdOTPDocument.otp,
-      createdOTPDocument.expirationTime
+      createdOTPDocument.otp
     );
   } else if (request.otpType === OTPType.ACCOUNT_CREATED) {
+    await sendWelcomeValidationEmail(
+      accountDocument.email,
+      accountDocument.username,
+      createdOTPDocument.otp
+    );
   }
 
-  return new CreateOTPResponse(
-    createdOTPDocument.userId,
-    createdOTPDocument.otp,
-    createdOTPDocument.otpType
-  );
+  return new CreateOTPResponse();
 };
 
 export const updateOTP = async (
@@ -89,9 +92,5 @@ export const updateOTP = async (
     { new: true }
   );
 
-  return new CreateOTPResponse(
-    updatedOTPDocument?.userId,
-    updatedOTPDocument?.otp!,
-    updatedOTPDocument?.otpType!
-  );
+  return new UpdateOTPResponse();
 };

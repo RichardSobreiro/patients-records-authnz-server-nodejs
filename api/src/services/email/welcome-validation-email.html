@@ -1,0 +1,443 @@
+<!-- @format -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Portal Atender</title>
+
+    <style>
+      p {
+        margin: 0;
+        max-width: 500px;
+        text-align: center;
+      }
+      a {
+        text-decoration: none;
+      }
+      header {
+        display: table;
+        margin: 0 auto;
+        background-color: #bed9f9;
+      }
+      .header-logo {
+        max-width: 3em;
+        display: block;
+        margin: 0 auto;
+      }
+
+      main {
+        display: table;
+        margin: 0 auto;
+        color: black;
+        background-color: #bed9f9;
+        padding-bottom: 1em;
+      }
+      .main-welcome-section {
+        margin: 0 auto;
+        max-width: fit-content;
+      }
+      .main-welcome-title {
+        font-size: 2em;
+        margin: 0.3em;
+      }
+      .main-welcome-message {
+        margin: 0 auto;
+        text-align: center;
+      }
+      .main-your-otp-code-section {
+        margin: 0 auto;
+        max-width: fit-content;
+      }
+      .main-your-otp-code {
+        border: 2px solid black;
+        font-size: 2em;
+        margin: 0.3em;
+        font-weight: bold;
+        color: black;
+        background-color: white;
+        padding: 0em 1em 0em 1em;
+      }
+      .main-instructions {
+        margin: 0 auto;
+        max-width: fit-content;
+        text-align: center;
+      }
+
+      .main-instructions p {
+        margin-top: 1em;
+        margin-bottom: 1em;
+      }
+      .main-instructions a {
+        color: #2540a0;
+        text-decoration: underline;
+        font-weight: bold;
+        padding: 0em 1em 0em 1em;
+      }
+
+      footer {
+        background: black;
+        padding-top: 1em;
+      }
+
+      .footer-top {
+        display: table;
+        margin: 0 auto;
+      }
+
+      .footer-top p {
+        max-width: 500px;
+        text-align: center;
+        margin-bottom: 1em;
+      }
+
+      .footer-title {
+        color: white;
+      }
+
+      .footer-message {
+        color: white;
+      }
+
+      .footer-social-icons-container {
+        text-align: center;
+      }
+
+      .footer-logo-container {
+        color: white;
+        padding-bottom: 0.4em;
+        display: inline-block;
+        text-align: center;
+      }
+
+      .footer-logo-anchor {
+        color: white;
+        padding-bottom: 0.4em;
+      }
+
+      .footer-logo-image {
+        max-width: 4em;
+      }
+
+      .footer-logo-title {
+        font-size: 1.3em;
+        font-weight: bold;
+        vertical-align: middle;
+        height: max-content;
+        color: white;
+      }
+
+      .footer-bottom {
+        color: white;
+        text-align: center;
+        vertical-align: bottom;
+        position: relative;
+      }
+
+      .footer-terms {
+        padding: 0.2em 0.4em 0.4em 0.2em;
+        display: inline-block;
+        position: absolute;
+        bottom: 0px;
+      }
+
+      .footer-terms a {
+        color: grey;
+        text-decoration: underline;
+        font-size: 0.7em;
+        vertical-align: bottom;
+      }
+
+      .footer-bottom-achor {
+        color: grey;
+        text-decoration: underline;
+        font-size: 0.7em;
+        padding: 0.2em 0.4em 0.4em 0.2em;
+        display: inline-block;
+        vertical-align: bottom;
+      }
+
+      .footer-social-images {
+        max-width: 2.5em;
+      }
+    </style>
+  </head>
+  <body style="background-color: #bed9f9">
+    <header>
+      <img class="header-logo" alt="Portal Atender Logo" src="cid:logo" />
+      <!-- <img class="header-logo" alt="Portal Atender Logo" src="./logo-min.png" /> -->
+    </header>
+    <div style="background-color: #bed9f9">
+      <section style="background-color: #bed9f9" class="main-welcome-section">
+        <p class="main-welcome-title">Que bom que você chegou,</p>
+        <p class="main-welcome-title">__USERNAME__</p>
+        <p class="main-welcome-message">
+          Você agora faz parte do portal para gestão de atendimentos que tem o
+          compromisso com a qualidade e preço baixo.
+        </p>
+      </section>
+
+      <section
+        style="background-color: #bed9f9"
+        class="main-your-otp-code-section"
+      >
+        <p class="main-your-otp-code">__OTP__</p>
+      </section>
+      <section style="background-color: #bed9f9" class="main-instructions">
+        <p>
+          Use o código de 6 dígitos acima para validar o seu e-mail na área de
+          configurações. <strong>Ele irá expirar em 30 minutos.</strong>
+        </p>
+        <p>
+          Caso você não tenha realizado o cadastrado entre em contato conosco
+          através do link a seguir:
+        </p>
+        <a target="_blank" href="https://portal-atender.com/fale-conosco"
+          >Não fui eu</a
+        >
+      </section>
+    </div>
+    <footer>
+      <div class="footer-top">
+        <p class="footer-title">FALE CONOSCO</p>
+        <p class="footer-message">
+          Envie-nos uma mensagem sobre qualquer assunto usando o e-mail
+          <strong style="color: #2540a0; text-decoration: underline"
+            >contato@portal-atender.com</strong
+          >
+          ou vá direto para nossa página
+          <a
+            style="color: #2540a0; text-decoration: underline"
+            target="_blank"
+            href="https://portal-atender.com/fale-conosco"
+            >Fale Conosco</a
+          >.
+        </p>
+        <div class="footer-social-icons-container">
+          <a
+            title="whatsapp"
+            href="https://google.com"
+            class="social-icon"
+            style="
+              display: inline-block;
+              width: 40px;
+              height: 40px;
+              position: relative;
+            "
+            aria-label="whatsapp"
+            ><div
+              class="social-container"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+              "
+            >
+              <!-- <img
+                class="footer-social-images"
+                src="./whatsapp.png"
+                alt="whatsapp link"
+              /> -->
+              <img
+                class="footer-social-images"
+                src="cid:whatsapp"
+                alt="whatsapp link"
+              /></div
+          ></a>
+          <a
+            title="instagram"
+            href="https://google.com"
+            class="social-icon"
+            style="
+              display: inline-block;
+              width: 40px;
+              height: 40px;
+              position: relative;
+            "
+            aria-label="instagram"
+            ><div
+              class="social-container"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+              "
+            >
+              <!-- <img
+                class="footer-social-images"
+                src="./instagram.png"
+                alt="instagram link"
+              /> -->
+              <img
+                class="footer-social-images"
+                src="cid:instagram"
+                alt="instagram link"
+              /></div
+          ></a>
+          <a
+            title="facebook"
+            href="https://google.com"
+            class="social-icon"
+            style="
+              display: inline-block;
+              width: 40px;
+              height: 40px;
+              position: relative;
+            "
+            aria-label="facebook"
+            ><div
+              class="social-container"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+              "
+            >
+              <!-- <img
+                class="footer-social-images"
+                src="./facebook.png"
+                alt="facebook link"
+              /> -->
+              <img
+                class="footer-social-images"
+                src="cid:facebook"
+                alt="facebook link"
+              /></div
+          ></a>
+          <a
+            title="linkedin"
+            href="https://google.com"
+            class="social-icon"
+            style="
+              display: inline-block;
+              width: 40px;
+              height: 40px;
+              position: relative;
+            "
+            aria-label="linkedin"
+            ><div
+              class="social-container"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+              "
+            >
+              <!-- <img
+                class="footer-social-images"
+                src="./linkedin.png"
+                alt="linkedin link"
+              /> -->
+              <img
+                class="footer-social-images"
+                src="cid:linkedin"
+                alt="linkedin link"
+              /></div
+          ></a>
+          <a
+            title="youtube"
+            href="https://google.com"
+            class="social-icon"
+            style="
+              display: inline-block;
+              width: 40px;
+              height: 40px;
+              position: relative;
+            "
+            aria-label="youtube"
+            ><div
+              class="social-container"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+              "
+            >
+              <!-- <img
+                class="footer-social-images"
+                src="./youtube.png"
+                alt="youtube link"
+              /> -->
+              <img
+                class="footer-social-images"
+                src="cid:youtube"
+                alt="youtube link"
+              /></div
+          ></a>
+          <a
+            title="twitter"
+            href="https://google.com"
+            class="social-icon"
+            style="
+              display: inline-block;
+              width: 40px;
+              height: 40px;
+              position: relative;
+            "
+            aria-label="twitter"
+            ><div
+              class="social-container"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+              "
+            >
+              <!-- <img
+                class="footer-social-images"
+                src="./twitter.png"
+                alt="twitter link"
+              /> -->
+              <img
+                class="footer-social-images"
+                src="cid:twitter"
+                alt="twitter link"
+              /></div
+          ></a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div style="left: 0px" class="footer-terms">
+          <a target="_blank" href="https://portal-atender/termos-uso"
+            >Termos de uso</a
+          >
+        </div>
+        <div class="footer-logo-container">
+          <a
+            class="footer-logo-anchor"
+            target="_blank"
+            href="https://portal-atender"
+          >
+            <img
+              class="footer-logo-image"
+              alt="Portal Atender Logo"
+              src="cid:logo"
+            />
+            <!-- <img
+              class="footer-logo-image"
+              alt="Portal Atender Logo"
+              src="./logo-min.png"
+            /> -->
+            <p class="footer-logo-title">Portal Atender</p>
+          </a>
+        </div>
+        <div style="right: 0px" class="footer-terms">
+          <a target="_blank" href="https://portal-atender/politica-privacidade"
+            >Política de privacidade</a
+          >
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

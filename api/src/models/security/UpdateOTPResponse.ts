@@ -1,7 +1,7 @@
 /** @format */
 
 class UpdateOTPResponse {
-  constructor(public userId, public otp: string) {}
+  constructor() {}
 }
 
 export default UpdateOTPResponse;
